@@ -4,14 +4,6 @@
 
 ### RData files are accessible here
 # https://www.dropbox.com/sh/uggkgtelk192cwa/AADJhH6AVyooBBc2k4LGOxG4a?dl=0
-
-load(file = "~/Documents/GitHub/BCM/RData/META-BRCA.RData")
-load(file="~/Documents/GitHub/BCM/RData/META-CRC.RData")
-load(file="~/Documents/GitHub/BCM/RData/META-NSCLC.RData")
-load(file="~/Documents/GitHub/BCM/RData/META-SKCM.RData")
-load(file="~/Documents/GitHub/BCM/RData/sig.genes.RData")
-source(file="~/Documents/GitHub/BCM/Rcodes/functions.R")
-
 library(ggcorrplot)
 library(sjPlot)
 library(sjlabelled)
@@ -26,6 +18,22 @@ library(ggplot2)
 library(forestplot)
 library(ggExtra)
 library(survival)
+library(tibble)
+library(doParallel)
+library(org.Hs.eg.db)
+library(survminer)
+library(ComplexHeatmap)
+library(survplot)
+library(plyr)
+library(tableone)
+library(ggthemes)
+
+load(file = "~/Dropbox/Public/BCM/RData/META-BRCA.RData")
+load(file="~/Dropbox/Public/BCM/RData/META-CRC.RData")
+load(file="~/Dropbox/Public/BCM/RData/META-NSCLC.RData")
+load(file="~/Dropbox/Public/BCM/RData/META-SKCM.RData")
+load(file="~/Dropbox/Public/BCM/RData/sig.genes.RData")
+source(file="~/Documents/GitHub/BCM/Rcodes/functions.R")
 
 ## function to generate interaction values of all genes in the dataset
 # the results are saved as a list in int.list
@@ -979,7 +987,7 @@ ggpubr::ggarrange(tmp.bplot.PD1.2group,PD1.wp.2,PD1.boxplot.2,PD1.AUC.bar,
 
 par(mfrow=c(1,3),omi=c(0, 0, 0, 0),tcl=-0.5,mai=c(1,1,0.5,0.5))
 
-survplot(Surv(tmp.water.2group$OS.year, tmp.water.2group$OS)~BCM.bin,show.nrisk = T,data=tmp.water.2group,stitle='',subset = tmp.water.2group$OS.year <= 2.5,
+survplot(Surv(tmp.water.2group$OS.year, tmp.water.2group$OS)~BCM.bin,show.nrisk = T,data=tmp.water.2group,stitle='',subset = tmp.water.2group$OS.year <= 2.6,
          xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main='BCM: Response to Anti-PD1 therapy',
          lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('BCM < Median','BCM > Median'))
 pval = summary(coxph(Surv(tmp.Low$OS.year, tmp.Low$OS) ~ B.lineage, data= tmp.Low))$coeff[,'Pr(>|z|)']
