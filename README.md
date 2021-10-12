@@ -36,5 +36,5 @@ All significant genes from interaction analyses and genes included in BCM signat
 
 Please contact Arian Lundberg : **arian.lundberg@ucsf.edu** if you have any furthur questions. 
 
-Sincerely,
+Thanks,
 Arian Lundberg
