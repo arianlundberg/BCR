@@ -27,6 +27,7 @@ library(survplot)
 library(plyr)
 library(tableone)
 library(ggthemes)
+library(ggpubr)
 
 load(file = "~/Dropbox/Public/BCM/RData/META-BRCA.RData")
 load(file="~/Dropbox/Public/BCM/RData/META-CRC.RData")
