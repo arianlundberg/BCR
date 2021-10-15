@@ -88,19 +88,8 @@ first.table.genes <- tmp.table %>% mutate(p.=replace(p.,p. <0.001,'< 0.001'),FDR
 
 ####
 
-#head(CTL.Bcell)
-## a data.frame with subset of the data to generate figure 1A - C
-
-
-# B.lineage        CTL B.bin OS  OS.year CTL.bin CTL.B.groups
-# 1  0.35057272 -0.3007329     2  0       NA       1          III
-# 2 -1.07839633 -0.8200763     1  0 1.849315       1            I
-# 3  0.17676515 -0.4347091     2  0       NA       1          III
-# 4 -0.57543003  0.1857145     1  0       NA       2           II
-# 5 -0.56540467 -0.1217551     1  0 2.701370       1            I
-# 6 -0.03870975 -0.0280080     2  0 4.731507       2           IV
-
 ### generating groups of B.cell Low/T.cells Low - B.cell Low/T.cells High - B.cell High/T cells low - B.cell High/T.cells High
+## CTL.Bcell is a data.frame with subset of the data to generate figure 1A - C
 
 CTL.Bcell$CTL.B.groups <- as.factor(ifelse(CTL.Bcell$B.bin %in% '1'&CTL.Bcell$CTL.bin %in% '1','I',
                                            ifelse(CTL.Bcell$B.bin %in% '1'&CTL.Bcell$CTL.bin %in% '2','II',
@@ -113,7 +102,7 @@ CTL.Bcell$CTL.B.groups <- as.factor(ifelse(CTL.Bcell$B.bin %in% '1'&CTL.Bcell$CT
 tmp.plot <- ggplot(CTL.Bcell, aes(x=CTL, y=B.lineage,color=CTL.B.groups)) + 
   geom_point(size = 2) + ggsci::scale_color_jco() +
   geom_smooth(method=lm, color='black',fill='lightcyan4') + 
-  scale_x_continuous(name=expression(bold("T cells")),limits = c(-2.5,2.5)) + scale_y_continuous(name=expression(bold("B.lineage-cell lineage abundance score (B.cell)")),limits = c(-2.5,2.5)) +
+  scale_x_continuous(name=expression(bold("T cells")),limits = c(-2.5,2.5)) + scale_y_continuous(name=expression(bold("B cell lineage abundance score (B.cell)")),limits = c(-2.5,2.5)) +
   geom_vline(xintercept=median(CTL.Bcell$CTL), linetype="dashed", color = "hotpink4")+
   geom_hline(yintercept=median(CTL.Bcell$B.lineage), linetype="dashed", color = "hotpink4")+
   annotate("text", x = min(CTL.Bcell$CTL)+1, y = max(CTL.Bcell$B.lineage)-1, label = my.corr.test(CTL.Bcell$B.lineage, CTL.Bcell$CTL)[1],colour='black',fontface=2,size=8) +
@@ -261,9 +250,7 @@ forestplot::forestplot(tabletext.BRCA,mean.FP.BRCA,lower.FP.BRCA,upper.FP.BRCA,z
 
 # Figure 2C and D BCM Kaplan Meiers
 
-
-#### finding an optimal cutpoint based on HR
-#### Generating a list of HR from B.lineage low group to be able to generate HR for genes in that subset. 
+#### finding an optimal cutpoint based on HR where at least 20% of patients are in one group 
 Gene.Low.TNBC <- foreach (i=c(5:ncol(TNBC.info))) %:%
   foreach(j=c(1:766),.combine='rbind',.errorhandling = 'pass') %dopar% {
     tmp <- as.data.frame(TNBC.info[TNBC.info$B.binary %in% 'Low',])
@@ -325,6 +312,7 @@ foreach(i='BCM',.combine='cbind') %do% {
 
 #### correlation plots
 ### NSCLC
+# Figure 3A
 
 LUNG.corr.score.BCM <- cor(x = t(LUNG.exprs[BCM.gene$ENTREZID,]),method = 'pearson')
 rownames(LUNG.corr.score.BCM)= BCM.gene$SYMBOL;colnames(LUNG.corr.score.BCM)= BCM.gene$SYMBOL
@@ -333,7 +321,7 @@ LUNG.B.BCM <- Heatmap(LUNG.corr.score.BCM*100,col=circlize::colorRamp2(c(-100, 0
 },heatmap_legend_param = list(direction = "horizontal"),column_title = " ",row_title = "META-NSCLC",row_gap = unit(0.8, "mm"), column_gap = unit(0.8, "mm"),border = T,column_names_rot = 45,name='Pearson Correlation (%)')
 
 ### CRC
-
+# Figure 3B
 CRC.corr.score.BCM <- cor(x = t(CRC.exprs[BCM.gene$ENTREZID,]),method = 'pearson')
 rownames(CRC.corr.score.BCM)= BCM.gene$SYMBOL;colnames(CRC.corr.score.BCM)= BCM.gene$SYMBOL
 CRC.B.BCM <- Heatmap(CRC.corr.score.BCM*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
@@ -341,7 +329,7 @@ CRC.B.BCM <- Heatmap(CRC.corr.score.BCM*100,col=circlize::colorRamp2(c(-100, 0, 
 },heatmap_legend_param = list(direction = "horizontal"),column_title = " ",row_title = "META-CRC",row_gap = unit(0.8, "mm"), column_gap = unit(0.8, "mm"),border = T,column_names_rot = 45,name='Pearson Correlation (%)')
 
 ### SKCM
-
+# Figure 3C
 MELA.corr.score.BCM <- cor(x = t(MELA.exprs[BCM.gene$ENTREZID,]),method = 'pearson')
 rownames(MELA.corr.score.BCM)= BCM.gene$SYMBOL;colnames(MELA.corr.score.BCM)= BCM.gene$SYMBOL
 MELA.B.BCM <- Heatmap(MELA.corr.score.BCM*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
@@ -795,6 +783,8 @@ MELA2.CTLA4.BCM.performance <- MELA2.CTLA4.BCM.performance %>% add_column(Signat
 MELA2.CTLA4.BCM.performance$AUC <- as.numeric(MELA2.CTLA4.BCM.performance$AUC)
 MELA2.CTLA4.BCM.performance$AUC.l <- as.numeric(MELA2.CTLA4.BCM.performance$AUC.l)
 MELA2.CTLA4.BCM.performance$AUC.u <- as.numeric(MELA2.CTLA4.BCM.performance$AUC.u)
+
+## ST4 
 
 # Signatures patients Responders Progressors   w.p    AUC     AUC.l     AUC.u
 # BCM         BCM      All         18          22 0.024 0.7323 0.5737328 0.8909137
