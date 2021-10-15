@@ -28,6 +28,7 @@ library(plyr)
 library(tableone)
 library(ggthemes)
 library(ggpubr)
+library(dplyr)
 
 load(file = "~/Dropbox/Public/BCM/RData/META-BRCA.RData")
 load(file="~/Dropbox/Public/BCM/RData/META-CRC.RData")
