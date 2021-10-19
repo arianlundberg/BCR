@@ -3,7 +3,7 @@
 ## load the RData all required datasets and libraries
 
 ### RData files are accessible here
-# https://www.dropbox.com/sh/uggkgtelk192cwa/AADJhH6AVyooBBc2k4LGOxG4a?dl=0
+# https://www.dropbox.com/sh/ads00s0zqh9iwqb/AABq7S_T0dNgxfaSYEvHvyIXa?dl=0
 library(ggcorrplot)
 library(sjPlot)
 library(sjlabelled)
@@ -30,12 +30,12 @@ library(ggthemes)
 library(ggpubr)
 library(dplyr)
 
-load(file = "~/Dropbox/Public/BCM/RData/META-BRCA.RData")
-load(file="~/Dropbox/Public/BCM/RData/META-CRC.RData")
-load(file="~/Dropbox/Public/BCM/RData/META-NSCLC.RData")
-load(file="~/Dropbox/Public/BCM/RData/META-SKCM.RData")
-load(file="~/Dropbox/Public/BCM/RData/sig.genes.RData")
-source(file="~/Documents/GitHub/BCM/Rcodes/functions.R")
+load(file = "~/Dropbox/Public/BCR/RData/META-BRCA.RData")
+load(file="~/Dropbox/Public/BCR/RData/META-CRC.RData")
+load(file="~/Dropbox/Public/BCR/RData/META-NSCLC.RData")
+load(file="~/Dropbox/Public/BCR/RData/META-SKCM.RData")
+load(file="~/Dropbox/Public/BCR/RData/sig.genes.RData")
+source(file="~/Documents/GitHub/BCR/Rcodes/functions.R")
 
 ## function to generate interaction values of all genes in the dataset
 # the results are saved as a list in int.list
@@ -182,23 +182,23 @@ Figure1C <- ggsurvplot(tmp.fit, data = CTL.Bcell, palette = "jco", pval=T,risk.t
 
 
 # Figure 2
-# Figure 2A BCM correlation plot
+# Figure 2A BCR correlation plot
 
-#### BCM genes
-tmp.BCM <- final.table.sig[final.table.sig$Meta.int > 0,]
+#### BCR genes
+tmp.BCR <- final.table.sig[final.table.sig$Meta.int > 0,]
 
-corr.score.BCM <- cor(TNBC.exprs[,tmp.BCM$SYMBOL],method = 'pearson')
-colnames(corr.score.BCM) <- paste0(tmp.BCM$SYMBOL," (",format((tmp.BCM$Meta.int),digits = 1),")")
+corr.score.BCR <- cor(TNBC.exprs[,tmp.BCR$SYMBOL],method = 'pearson')
+colnames(corr.score.BCR) <- paste0(tmp.BCR$SYMBOL," (",format((tmp.BCR$Meta.int),digits = 1),")")
 
-Figure2A <- draw(Heatmap(corr.score.BCM*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
-  grid.text(sprintf("%.1f", corr.score.BCM[i, j]*100), x, y, gp = gpar(fontsize = 10))
+Figure2A <- draw(Heatmap(corr.score.BCR*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
+  grid.text(sprintf("%.1f", corr.score.BCR[i, j]*100), x, y, gp = gpar(fontsize = 10))
 },column_km =2 ,row_km = 2,row_gap = unit(0.8, "mm"),heatmap_legend_param = list(direction = "horizontal"),column_title = ' ',row_title = ' ',column_gap = unit(0.8, "mm"),border = T,column_names_rot = 45,name='Pearson Correlation (%)'),heatmap_legend_side='bottom')
 
   
-# Figure 2B BCM Forest plot
+# Figure 2B BCR Forest plot
 
 BRCA.FP.data <- merge(TNBC.info,TNBC.exprs,by='row.names',sort=F,all.x=T);rownames(BRCA.FP.data) <- BRCA.FP.data$Row.names;BRCA.FP.data <- BRCA.FP.data[,-1]
-model.BRCA <- coxph(Surv(BRCA.FP.data$OS.year, BRCA.FP.data$OS) ~ B.lineage*BCM, data= BRCA.FP.data)
+model.BRCA <- coxph(Surv(BRCA.FP.data$OS.year, BRCA.FP.data$OS) ~ B.lineage*BCR, data= BRCA.FP.data)
 
 
 m.BRCA<- c(NA,NA,summary(model.BRCA)$coeff[1,2],
@@ -217,7 +217,7 @@ u.BRCA<- c(NA,NA,format(signif(summary(model.BRCA)$conf.int[1,4],digits = 4)),
 np.BRCA <- c(paste(nrow(BRCA.FP.data)," (",'100',")",sep=""))
 np.BRCA[np.BRCA=='NA (NA)'] <- NA
 
-tabletext.BRCA<-cbind(c(c(NA,'META-BRCA','B cells','BCM','B cells * BCM')),
+tabletext.BRCA<-cbind(c(c(NA,'META-BRCA','B cells','BCR','B cells * BCR')),
                       c("No. of Patients (%)",np.BRCA,NA,NA,NA), 
                       c("HR",NA,format((summary(model.BRCA)$coeff[,2]),digits=3)[1],format((summary(model.BRCA)$coeff[,2])[2],digits=3),format((summary(model.BRCA)$coeff[,2])[3],digits=4)),
                       c('95% CI',NA,paste0('[',l.BRCA[3],' - ',u.BRCA[3],']',sep = ''),
@@ -249,7 +249,7 @@ forestplot::forestplot(tabletext.BRCA,mean.FP.BRCA,lower.FP.BRCA,upper.FP.BRCA,z
 
 
 
-# Figure 2C and D BCM Kaplan Meiers
+# Figure 2C and D BCR Kaplan Meiers
 
 #### finding an optimal cutpoint based on HR where at least 20% of patients are in one group 
 Gene.Low.TNBC <- foreach (i=c(5:ncol(TNBC.info))) %:%
@@ -278,9 +278,9 @@ tmp.Gene <- cbind(tmp.High,tmp.Low)
 ### Convert to List
 Gene.TNBC <- split(tmp.Gene, rep(1:length(Gene.Low.TNBC), length.out = nrow(tmp.Gene), each = ceiling(nrow(tmp.Gene)/length(Gene.Low.TNBC))))
 names(Gene.TNBC) <- colnames(TNBC.info)[5:ncol(TNBC.info)]
-tmp.cut.BCM <- data.frame(cutpoint=Gene.TNBC$BCM$gene,HR.ratio=Gene.TNBC$BCM$Coeff.High-Gene.TNBC$BCM$Coeff.Low)
-tmp.cut.BCM$percent <- percent_rank(tmp.cut.BCM$HR.ratio)
-cut.point.BCM <- tmp.cut.BCM[which.max(tmp.cut.BCM[tmp.cut.BCM$percent > 0.2&tmp.cut.BCM$percent < 0.8,]$HR.ratio),]$cutpoint
+tmp.cut.BCR <- data.frame(cutpoint=Gene.TNBC$BCR$gene,HR.ratio=Gene.TNBC$BCR$Coeff.High-Gene.TNBC$BCR$Coeff.Low)
+tmp.cut.BCR$percent <- percent_rank(tmp.cut.BCR$HR.ratio)
+cut.point.BCR <- tmp.cut.BCR[which.max(tmp.cut.BCR[tmp.cut.BCR$percent > 0.2&tmp.cut.BCR$percent < 0.8,]$HR.ratio),]$cutpoint
 
 
 #### generating the plots 
@@ -288,18 +288,18 @@ cut.point.BCM <- tmp.cut.BCM[which.max(tmp.cut.BCM[tmp.cut.BCM$percent > 0.2&tmp
 
 par(mfrow=c(2,2),mai = c(1, 1.25, 0.75, 0.5))
 
-foreach(i='BCM',.combine='cbind') %do% {
-  tmp.Low <-   TNBC.info[TNBC.info[,i] < cut.point.BCM,]
+foreach(i='BCR',.combine='cbind') %do% {
+  tmp.Low <-   TNBC.info[TNBC.info[,i] < cut.point.BCR,]
   b.Low <- relevel(as.factor(ifelse(ntile(tmp.Low[,4],n = 2)=='1','Low','High')),ref = 'Low')
-  tmp.High <-   TNBC.info[TNBC.info[,i] >cut.point.BCM,]
+  tmp.High <-   TNBC.info[TNBC.info[,i] >cut.point.BCR,]
   b.High <- relevel(as.factor(ifelse(ntile(tmp.High[,4],n = 2)=='1','Low','High')),ref = 'Low')
   survplot(Surv(tmp.Low$OS.year, tmp.Low$OS)~b.Low,show.nrisk = T,data=tmp.Low,xlim=c(0,10),
            xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main=paste(colnames(tmp.Low[i]),":","Low",sep = ""),
            lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',stitle='',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('B.cell < Median','B.cell > Median'))
   pval = summary(coxph(Surv(tmp.Low$OS.year, tmp.Low$OS) ~ B.lineage, data= tmp.Low))$coeff[,'Pr(>|z|)']
   pval=ifelse(formatC(format='f',pval, digits=3) < '0.001', '< 0.001',formatC(format='f',pval, digits=3))
-  #plot.new()
-  mtext("B cell dysfunction signature", side = 3,outer = T,cex=1.5,font = 1)
+
+  mtext("B cell-related gene signature", side = 3,outer = T,cex=1.5,font = 1)
   survplot(Surv(tmp.High$OS.year, tmp.High$OS)~b.High,show.nrisk = T,data=tmp.High,xlim=c(0,10),
            xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main=paste(colnames(tmp.High[i]),":","High",sep = ""),
            lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',stitle='',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('B.cell < Median','B.cell > Median'))
@@ -315,26 +315,26 @@ foreach(i='BCM',.combine='cbind') %do% {
 ### NSCLC
 # Figure 3A
 
-LUNG.corr.score.BCM <- cor(x = t(LUNG.exprs[BCM.gene$ENTREZID,]),method = 'pearson')
-rownames(LUNG.corr.score.BCM)= BCM.gene$SYMBOL;colnames(LUNG.corr.score.BCM)= BCM.gene$SYMBOL
-LUNG.B.BCM <- Heatmap(LUNG.corr.score.BCM*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
-  grid.text(sprintf("%.1f", LUNG.corr.score.BCM[i, j]*100), x, y, gp = gpar(fontsize = 7))
+LUNG.corr.score.BCR <- cor(x = t(LUNG.exprs[BCR.genes$ENTREZID,]),method = 'pearson')
+rownames(LUNG.corr.score.BCR)= BCR.genes$SYMBOL;colnames(LUNG.corr.score.BCR)= BCR.genes$SYMBOL
+LUNG.B.BCR <- Heatmap(LUNG.corr.score.BCR*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
+  grid.text(sprintf("%.1f", LUNG.corr.score.BCR[i, j]*100), x, y, gp = gpar(fontsize = 7))
 },heatmap_legend_param = list(direction = "horizontal"),column_title = " ",row_title = "META-NSCLC",row_gap = unit(0.8, "mm"), column_gap = unit(0.8, "mm"),border = T,column_names_rot = 45,name='Pearson Correlation (%)')
 
 ### CRC
 # Figure 3B
-CRC.corr.score.BCM <- cor(x = t(CRC.exprs[BCM.gene$ENTREZID,]),method = 'pearson')
-rownames(CRC.corr.score.BCM)= BCM.gene$SYMBOL;colnames(CRC.corr.score.BCM)= BCM.gene$SYMBOL
-CRC.B.BCM <- Heatmap(CRC.corr.score.BCM*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
-  grid.text(sprintf("%.1f", CRC.corr.score.BCM[i, j]*100), x, y, gp = gpar(fontsize = 7))
+CRC.corr.score.BCR <- cor(x = t(CRC.exprs[BCR.genes$ENTREZID,]),method = 'pearson')
+rownames(CRC.corr.score.BCR)= BCR.genes$SYMBOL;colnames(CRC.corr.score.BCR)= BCR.genes$SYMBOL
+CRC.B.BCR <- Heatmap(CRC.corr.score.BCR*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
+  grid.text(sprintf("%.1f", CRC.corr.score.BCR[i, j]*100), x, y, gp = gpar(fontsize = 7))
 },heatmap_legend_param = list(direction = "horizontal"),column_title = " ",row_title = "META-CRC",row_gap = unit(0.8, "mm"), column_gap = unit(0.8, "mm"),border = T,column_names_rot = 45,name='Pearson Correlation (%)')
 
 ### SKCM
 # Figure 3C
-MELA.corr.score.BCM <- cor(x = t(MELA.exprs[BCM.gene$ENTREZID,]),method = 'pearson')
-rownames(MELA.corr.score.BCM)= BCM.gene$SYMBOL;colnames(MELA.corr.score.BCM)= BCM.gene$SYMBOL
-MELA.B.BCM <- Heatmap(MELA.corr.score.BCM*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
-  grid.text(sprintf("%.1f", MELA.corr.score.BCM[i, j]*100), x, y, gp = gpar(fontsize = 7))
+MELA.corr.score.BCR <- cor(x = t(MELA.exprs[BCR.genes$ENTREZID,]),method = 'pearson')
+rownames(MELA.corr.score.BCR)= BCR.genes$SYMBOL;colnames(MELA.corr.score.BCR)= BCR.genes$SYMBOL
+MELA.B.BCR <- Heatmap(MELA.corr.score.BCR*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
+  grid.text(sprintf("%.1f", MELA.corr.score.BCR[i, j]*100), x, y, gp = gpar(fontsize = 7))
 },heatmap_legend_param = list(direction = "horizontal"),column_title = " ",row_title = "META-SKCM",row_gap = unit(0.8, "mm"), column_gap = unit(0.8, "mm"),border = T,column_names_rot = 45,name='Pearson Correlation (%)')
 
 
@@ -343,10 +343,10 @@ MELA.B.BCM <- Heatmap(MELA.corr.score.BCM*100,col=circlize::colorRamp2(c(-100, 0
 par(mfrow=c(3,4),omi=c(0, 0.9, 0, 0))
 
 
-foreach(i='BCM',.combine='cbind') %do% {
-  tmp.Low <-   LUNG.info[LUNG.info[,i] < cut.point.BCM.LUNG,]
+foreach(i='BCR',.combine='cbind') %do% {
+  tmp.Low <-   LUNG.info[LUNG.info[,i] < cut.point.BCR.LUNG,]
   b.Low <- relevel(as.factor(ifelse(ntile(tmp.Low[,4],n = 2)=='1','Low','High')),ref = 'Low')
-  tmp.High <-  LUNG.info[LUNG.info[,i] > cut.point.BCM.LUNG,]
+  tmp.High <-  LUNG.info[LUNG.info[,i] > cut.point.BCR.LUNG,]
   b.High <- relevel(as.factor(ifelse(ntile(tmp.High[,4],n = 2)=='1','Low','High')),ref = 'Low')
   
   survplot(Surv(tmp.Low$OS.year, tmp.Low$OS)~b.Low,show.nrisk = T,data=tmp.Low,stitle='',xlim=c(0,10),
@@ -354,7 +354,7 @@ foreach(i='BCM',.combine='cbind') %do% {
            lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('B.cell < Median','B.cell > Median'))
   pval = summary(coxph(Surv(tmp.Low$OS.year, tmp.Low$OS) ~ B.lineage, data= tmp.Low))$coeff[,'Pr(>|z|)']
   pval=ifelse(formatC(format='f',pval, digits=3) < '0.001', '< 0.001',formatC(format='f',pval, digits=3))
-  mtext("B cell dysfunction (BCM) signature", side = 3,outer = T,cex=1.5,font = 1)
+  mtext("B cell-related gene signature", side = 3,outer = T,cex=1.5,font = 1)
   
   survplot(Surv(tmp.High$OS.year, tmp.High$OS)~b.High,show.nrisk = T,data=tmp.High,stitle='',xlim=c(0,10),
            xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main=paste(colnames(tmp.High[i]),":","High",sep = ""),
@@ -366,10 +366,10 @@ foreach(i='BCM',.combine='cbind') %do% {
 plot.new()
 plot.new()
 
-foreach(i='BCM',.combine='cbind') %do% {
-  tmp.Low <-   CRC.info[CRC.info[,i] < (cut.point.BCM.CRC),]
+foreach(i='BCR',.combine='cbind') %do% {
+  tmp.Low <-   CRC.info[CRC.info[,i] < (cut.point.BCR.CRC),]
   b.Low <- relevel(as.factor(ifelse(ntile(tmp.Low[,4],n = 2)=='1','Low','High')),ref = 'Low')
-  tmp.High <-  CRC.info[CRC.info[,i] > cut.point.BCM.CRC,]
+  tmp.High <-  CRC.info[CRC.info[,i] > cut.point.BCR.CRC,]
   b.High <- relevel(as.factor(ifelse(ntile(tmp.High[,4],n = 2)=='1','Low','High')),ref = 'Low')
   
   survplot(Surv(tmp.Low$OS.year, tmp.Low$OS)~b.Low,show.nrisk = T,data=tmp.Low,stitle='',xlim=c(0,10),
@@ -377,7 +377,7 @@ foreach(i='BCM',.combine='cbind') %do% {
            lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('B.cell < Median','B.cell > Median'))
   pval = summary(coxph(Surv(tmp.Low$OS.year, tmp.Low$OS) ~ B.lineage, data= tmp.Low))$coeff[,'Pr(>|z|)']
   pval=ifelse(formatC(format='f',pval, digits=3) < '0.001', '< 0.001',formatC(format='f',pval, digits=3))
-  mtext("B cell dysfunction (BCM) signature", side = 3,outer = T,cex=1.5,font = 1)
+  mtext("B cell-related gene signature", side = 3,outer = T,cex=1.5,font = 1)
   
   survplot(Surv(tmp.High$OS.year, tmp.High$OS)~b.High,show.nrisk = T,data=tmp.High,stitle='',xlim=c(0,10),
            xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main=paste(colnames(tmp.High[i]),":","High",sep = ""),
@@ -390,10 +390,10 @@ plot.new()
 plot.new()
 
 
-foreach(i='BCM',.combine='cbind') %do% {
-  tmp.Low <-   MELA.info[MELA.info[,i] < cut.point.BCM.MELA,]
+foreach(i='BCR',.combine='cbind') %do% {
+  tmp.Low <-   MELA.info[MELA.info[,i] < cut.point.BCR.MELA,]
   b.Low <- relevel(as.factor(ifelse(ntile(tmp.Low[,4],n = 2)=='1','Low','High')),ref = 'Low')
-  tmp.High <-  MELA.info[MELA.info[,i] > cut.point.BCM.MELA,]
+  tmp.High <-  MELA.info[MELA.info[,i] > cut.point.BCR.MELA,]
   b.High <- relevel(as.factor(ifelse(ntile(tmp.High[,4],n = 2)=='1','Low','High')),ref = 'Low')
   
   survplot(Surv(tmp.Low$OS.year, tmp.Low$OS)~b.Low,show.nrisk = T,data=tmp.Low,stitle='',xlim=c(0,10),
@@ -401,7 +401,7 @@ foreach(i='BCM',.combine='cbind') %do% {
            lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('B.cell < Median','B.cell > Median'))
   pval = summary(coxph(Surv(tmp.Low$OS.year, tmp.Low$OS) ~ B.lineage, data= tmp.Low))$coeff[,'Pr(>|z|)']
   pval=ifelse(formatC(format='f',pval, digits=3) < '0.001', '< 0.001',formatC(format='f',pval, digits=3))
-  mtext("B cell dysfunction (BCM) signature", side = 3,outer = T,cex=1.5,font = 1)
+  mtext("B cell-related gene signature", side = 3,outer = T,cex=1.5,font = 1)
   
   survplot(Surv(tmp.High$OS.year, tmp.High$OS)~b.High,show.nrisk = T,data=tmp.High,stitle='',xlim=c(0,10),
            xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main=paste(colnames(tmp.High[i]),":","High",sep = ""),
@@ -515,7 +515,7 @@ LUNG.FP.data <- merge(LUNG.info,META.LUNG.info,by='row.names',sort=F,all.x=T);ro
 
 ### NSCLC
 
-model.NSCLC <- coxph(Surv(LUNG.FP.data$OS.year, LUNG.FP.data$OS) ~ Age+Gender+Pstage+B.lineage*BCM, data= LUNG.FP.data)
+model.NSCLC <- coxph(Surv(LUNG.FP.data$OS.year, LUNG.FP.data$OS) ~ Age+Gender+Pstage+B.lineage*BCR, data= LUNG.FP.data)
 m.NSCLC<- c(NA,NA,summary(model.NSCLC)$coeff[1,2],
             NA,NA,summary(model.NSCLC)$coeff[2,2],
             NA,NA,summary(model.NSCLC)$coeff[3:5,2],
@@ -532,11 +532,11 @@ u.NSCLC<- c(NA,NA,format(signif(summary(model.NSCLC)$conf.int[1,4],digits = 3)),
             NA,format(signif(summary(model.NSCLC)$conf.int[6:8,4],digits = 3)))
 
 
-np.NSCLC <- c(paste(c(length(LUNG.FP.data$Age),NA,table(LUNG.FP.data$Gender),NA,table(LUNG.FP.data$Pstage,useNA='always'),length(LUNG.FP.data$B.lineage),length(LUNG.FP.data$BCM),length(LUNG.FP.data$BCM))," (",
-                    signif(c(length(LUNG.FP.data$Age),NA,table(LUNG.FP.data$Gender),NA,table(LUNG.FP.data$Pstage,useNA='always'),length(LUNG.FP.data$B.lineage),length(LUNG.FP.data$BCM),length(LUNG.FP.data$BCM))/nrow(LUNG.FP.data)*100,digits=1),")",sep=""))
+np.NSCLC <- c(paste(c(length(LUNG.FP.data$Age),NA,table(LUNG.FP.data$Gender),NA,table(LUNG.FP.data$Pstage,useNA='always'),length(LUNG.FP.data$B.lineage),length(LUNG.FP.data$BCR),length(LUNG.FP.data$BCR))," (",
+                    signif(c(length(LUNG.FP.data$Age),NA,table(LUNG.FP.data$Gender),NA,table(LUNG.FP.data$Pstage,useNA='always'),length(LUNG.FP.data$B.lineage),length(LUNG.FP.data$BCR),length(LUNG.FP.data$BCR))/nrow(LUNG.FP.data)*100,digits=1),")",sep=""))
 np.NSCLC[np.NSCLC=='NA (NA)'] <- NA
 
-tabletext.NSCLC<-cbind(c(c(NA,'META-NSCLC','Age','Gender','    Female','    Male','Tumour Stage','    I','    II','    III','    IV','    Missing cases','B cells','BCM','B cells * BCM')),
+tabletext.NSCLC<-cbind(c(c(NA,'META-NSCLC','Age','Gender','    Female','    Male','Tumour Stage','    I','    II','    III','    IV','    Missing cases','B cells','BCR','B cells * BCR')),
                        c("No. of Patients (%)",NA,np.NSCLC), 
                        c("HR",NA,format((summary(model.NSCLC)$coeff[,2]),digits=2)[1],NA,'Ref',format((summary(model.NSCLC)$coeff[,2])[2],digits=3),NA,'Ref',format((summary(model.NSCLC)$coeff[,2])[c(3:5)],digits=3),NA,format((summary(model.NSCLC)$coeff[,2])[c(6:8)],digits=3)),
                        c('95% CI',NA,paste0('[',l.NSCLC[3],' - ',u.NSCLC[3],']',sep = ''),
@@ -551,7 +551,7 @@ tabletext.NSCLC[as.numeric(tabletext.NSCLC[,6]) < 0.001,6] <- '< 0.001'
 
 CRC.FP.data <- merge(CRC.info,META.CRC.info,by='row.names',sort=F,all.x=T);rownames(CRC.FP.data) <- CRC.FP.data$Row.names;CRC.FP.data <- CRC.FP.data[,-1]
 
-model.CRC <- coxph(Surv(CRC.FP.data$OS.year, CRC.FP.data$OS) ~ Age+Gender+Pstage+B.lineage*BCM, data= CRC.FP.data)
+model.CRC <- coxph(Surv(CRC.FP.data$OS.year, CRC.FP.data$OS) ~ Age+Gender+Pstage+B.lineage*BCR, data= CRC.FP.data)
 m.CRC<- c(NA,NA,summary(model.CRC)$coeff[1,2],
           NA,NA,summary(model.CRC)$coeff[2,2],
           NA,NA,summary(model.CRC)$coeff[3:6,2],
@@ -568,11 +568,11 @@ u.CRC<- c(NA,NA,format(signif(summary(model.CRC)$conf.int[1,4],digits = 3)),
           NA,format(round(summary(model.CRC)$conf.int[7:9,4],digits = 3)))
 
 
-np.CRC <- c(paste(c(length(CRC.FP.data$Age),NA,table(CRC.FP.data$Gender),NA,table(CRC.FP.data$Pstage,useNA='always'),length(CRC.FP.data$B.lineage),length(CRC.FP.data$BCM),length(CRC.FP.data$BCM))," (",
-                  signif(c(length(CRC.FP.data$Age),NA,table(CRC.FP.data$Gender),NA,table(CRC.FP.data$Pstage,useNA='always'),length(CRC.FP.data$B.lineage),length(CRC.FP.data$BCM),length(CRC.FP.data$BCM))/nrow(CRC.FP.data)*100,digits=1),")",sep=""))
+np.CRC <- c(paste(c(length(CRC.FP.data$Age),NA,table(CRC.FP.data$Gender),NA,table(CRC.FP.data$Pstage,useNA='always'),length(CRC.FP.data$B.lineage),length(CRC.FP.data$BCR),length(CRC.FP.data$BCR))," (",
+                  signif(c(length(CRC.FP.data$Age),NA,table(CRC.FP.data$Gender),NA,table(CRC.FP.data$Pstage,useNA='always'),length(CRC.FP.data$B.lineage),length(CRC.FP.data$BCR),length(CRC.FP.data$BCR))/nrow(CRC.FP.data)*100,digits=1),")",sep=""))
 np.CRC[np.CRC=='NA (NA)'] <- NA
 
-tabletext.CRC<-cbind(c(c(NA,'META-CRC','Age','Gender','    Female','    Male','Tumour Stage','    I','    II','    III','    IV','    V','    Missing cases','B cells','BCM','B cells * BCM')),
+tabletext.CRC<-cbind(c(c(NA,'META-CRC','Age','Gender','    Female','    Male','Tumour Stage','    I','    II','    III','    IV','    V','    Missing cases','B cells','BCR','B cells * BCR')),
                      c("No. of Patients (%)",NA,np.CRC), 
                      c("HR",NA,format((summary(model.CRC)$coeff[,2]),digits=3)[1],NA,'Ref',format((summary(model.CRC)$coeff[,2])[2],digits=3),NA,'Ref',format((summary(model.CRC)$coeff[,2])[c(3:6)],digits=3),NA,format((summary(model.CRC)$coeff[,2])[c(7:9)],digits=3)),
                      c('95% CI',NA,paste0('[',l.CRC[3],' - ',u.CRC[3],']',sep = ''),
@@ -587,7 +587,7 @@ tabletext.CRC[as.numeric(tabletext.CRC[,6]) < 0.001,6] <- '< 0.001'
 ########## SKCM
 
 SKCM.FP.data <- merge(MELA.info,META.SKCM.info,by='row.names',sort=F,all.x=T);rownames(SKCM.FP.data) <- SKCM.FP.data$Row.names;SKCM.FP.data <- SKCM.FP.data[,-1]
-model.SKCM <- coxph(Surv(SKCM.FP.data$OS.year, SKCM.FP.data$OS) ~ B.lineage*BCM, data= SKCM.FP.data)
+model.SKCM <- coxph(Surv(SKCM.FP.data$OS.year, SKCM.FP.data$OS) ~ B.lineage*BCR, data= SKCM.FP.data)
 
 m.SKCM<- c(NA,summary(model.SKCM)$coeff[1,2],
            summary(model.SKCM)$coeff[2:3,2])
@@ -598,11 +598,11 @@ l.SKCM<- c(format(signif(summary(model.SKCM)$conf.int[1,3],digits = 3)),
 u.SKCM<- c('1.000',
            format(round(summary(model.SKCM)$conf.int[2:3,4],digits = 3)))
 
-np.SKCM <- c(paste(c(length(SKCM.FP.data$B.lineage),length(SKCM.FP.data$BCM),length(SKCM.FP.data$BCM))," (",
-                   signif(c(length(SKCM.FP.data$B.lineage),length(SKCM.FP.data$BCM),length(SKCM.FP.data$BCM))/nrow(SKCM.FP.data)*100,digits=1),")",sep=""))
+np.SKCM <- c(paste(c(length(SKCM.FP.data$B.lineage),length(SKCM.FP.data$BCR),length(SKCM.FP.data$BCR))," (",
+                   signif(c(length(SKCM.FP.data$B.lineage),length(SKCM.FP.data$BCR),length(SKCM.FP.data$BCR))/nrow(SKCM.FP.data)*100,digits=1),")",sep=""))
 np.SKCM[np.SKCM=='NA (NA)'] <- NA
 
-tabletext.SKCM<-cbind(c(c(NA,'META-SKCM','B cells','BCM','B cells * BCM')),
+tabletext.SKCM<-cbind(c(c(NA,'META-SKCM','B cells','BCR','B cells * BCR')),
                       c("No. of Patients (%)",NA,np.SKCM), 
                       c("HR",NA,format((summary(model.SKCM)$coeff[,2])[1],digits=3),format((summary(model.SKCM)$coeff[,2])[c(2:3)],digits=3)),
                       c('95% CI',NA,paste0('[',l.SKCM[1],' - ',u.SKCM[1],']',sep = ''),
@@ -657,8 +657,8 @@ grid.text('Note: Models were adjusted for clinical variables (Age, Gender, Patho
 # Figure 4
 
 
-MELA2.info$BCM <- base::rowMeans(t(MELA2.exprs[BCM.gene$ENTREZID,]))
-MELA2.info$BCM.bin <- relevel(as.factor(ifelse(ntile(MELA2.info$BCM,n = 2)=='1','Low','High')),ref = 'Low')
+MELA2.info$BCR <- base::rowMeans(t(MELA2.exprs[BCR.genes$ENTREZID,]))
+MELA2.info$BCR.bin <- relevel(as.factor(ifelse(ntile(MELA2.info$BCR,n = 2)=='1','Low','High')),ref = 'Low')
 
 MELA2.info$CTLA4.2group <- as.factor(ifelse(MELA2.info$response=='nonresponse','PD',
                                             ifelse(MELA2.info$response%in%c('response','long-survival'),'non-PD',NA)))
@@ -666,14 +666,14 @@ MELA2.info$CTLA4.2group <- as.factor(ifelse(MELA2.info$response=='nonresponse','
 
 # waterfall plot and KM - anti-CTLA4
 
-tmp.water.CTLA4 <- MELA2.info[c('response','CTLA4.2group','BCM','BCM.bin','OS','OS.year')]
-tmp.water.CTLA4$BCM.rescaled  <- scale(tmp.water.CTLA4$BCM, center = T,scale=T)
-tmp.water.CTLA4 <- tmp.water.CTLA4[order(tmp.water.CTLA4$BCM.rescaled),]
+tmp.water.CTLA4 <- MELA2.info[c('response','CTLA4.2group','BCR','BCR.bin','OS','OS.year')]
+tmp.water.CTLA4$BCR.rescaled  <- scale(tmp.water.CTLA4$BCR, center = T,scale=T)
+tmp.water.CTLA4 <- tmp.water.CTLA4[order(tmp.water.CTLA4$BCR.rescaled),]
 tmp.water.CTLA4$id <- as.factor(1:nrow(tmp.water.CTLA4))
 tmp.bp <- data.frame(table(tmp.water.CTLA4$response));tmp.bp$total <- 'All patients'
 tmp.bp.2group <- data.frame(table(tmp.water.CTLA4$CTLA4.2group));tmp.bp.2group$total <- 'All patients'
 
-##  Testing association of BCM with worse ICB response
+##  Testing association of BCR with worse ICB response
 tmp.water.CTLA4$id2 <- as.factor(c(rep('btm',20),rep('top',20)))
 
 tmp.bplot.CTLA4.2group <- ggplot(tmp.bp.2group, aes(fill=Var1, y=Freq, x=total,label=Freq)) + 
@@ -693,9 +693,9 @@ tmp.bplot.CTLA4.2group <- ggplot(tmp.bp.2group, aes(fill=Var1, y=Freq, x=total,l
         axis.title.y = element_text(size=14, face="bold"))
 
 
-CTLA4.wp.2 <- ggplot(tmp.water.CTLA4, aes(x=id,y=na.omit(BCM.rescaled), fill = CTLA4.2group)) + 
+CTLA4.wp.2 <- ggplot(tmp.water.CTLA4, aes(x=id,y=na.omit(BCR.rescaled), fill = CTLA4.2group)) + 
   geom_bar(stat='identity')+
-  labs(x = "Patients", y = "BCM score",fill='Anti-CTLA4 response')+
+  labs(x = "Patients", y = "BCR score",fill='Anti-CTLA4 response')+
   geom_segment(aes(x= 10,xend=10,y=0.7,yend=0.7))+
   geom_segment(aes(x= 30,xend=30,y=0.7,yend=0.7))+
   scale_fill_manual(labels= c('Responders','Progressors'),
@@ -709,7 +709,7 @@ CTLA4.wp.2 <- ggplot(tmp.water.CTLA4, aes(x=id,y=na.omit(BCM.rescaled), fill = C
         axis.title.x = element_text(size=14, face="bold"),
         axis.title.y = element_text(size=14, face="bold"))
 
-CTLA4.boxplot.2 <- ggboxplot(tmp.water.CTLA4,x='CTLA4.2group',y='BCM.rescaled',
+CTLA4.boxplot.2 <- ggboxplot(tmp.water.CTLA4,x='CTLA4.2group',y='BCR.rescaled',
                              bxp.errorbar = TRUE,bxp.errorbar.width=0.15,
                              fill='CTLA4.2group',error.plot = 'errorbar',
                              size = 0.2,
@@ -718,7 +718,7 @@ CTLA4.boxplot.2 <- ggboxplot(tmp.water.CTLA4,x='CTLA4.2group',y='BCM.rescaled',
                              ggtheme = theme_few())+
   stat_compare_means(method = 't.test',tip.length = 0.01,label.x = 2.1,label='p.format',size=5,label.y=2.2)+
   scale_x_discrete(labels=c('Responders','Progressors')) +
-  labs(x='Anti-CTLA4 response',y='BCM score',fill='') +
+  labs(x='Anti-CTLA4 response',y='BCR score',fill='') +
   theme(axis.title.x = element_text(size = 10, face = "bold"),
         axis.title.y = element_text(size = 10, face = "bold"),
         plot.title = element_text(size = 15, face = "bold",hjust = c(0.5,0.5)),
@@ -730,7 +730,7 @@ CTLA4.boxplot.2 <- ggboxplot(tmp.water.CTLA4,x='CTLA4.2group',y='BCM.rescaled',
 
 
 # PERFORMANCE TEST WITH WILCOXON and AUC
-# Compare BCM with IPS, IFGN, CD8, PDL1, CRMA, Total count of non-synonymous mutations in a tumor
+# Compare BCR with IPS, IFGN, CD8, PDL1, CRMA, Total count of non-synonymous mutations in a tumor
 
 IFGN.sig <-  biomaRt::select(org.Hs.eg.db,keys =c('IFNG','STAT1','IDO1','CXCL10','CXCL9','HLA-DRA'),
                              columns = c('ENTREZID','SYMBOL'),keytype = 'SYMBOL')
@@ -755,9 +755,9 @@ MELA2.info$MUT <- MELA2.info$nonsynonymous
 MELA2.info$T.cells <- as.numeric(MCPcounter::MCPcounter.estimate(MELA2.exprs,featuresType = 'ENTREZ_ID')['T cells',])
 
 
-CTLA4.table <- MELA2.info[c('response','CTLA4.2group','BCM.bin','OS','OS.year','BCM','T.cells','IFGN','CD8','PDL1','CRMA','IPS','MUT')]
-CTLA4.table$BCM.rescaled  <- scale(CTLA4.table$BCM, center = T,scale=T)
-CTLA4.table <- CTLA4.table[order(CTLA4.table$BCM.rescaled),]
+CTLA4.table <- MELA2.info[c('response','CTLA4.2group','BCR.bin','OS','OS.year','BCR','T.cells','IFGN','CD8','PDL1','CRMA','IPS','MUT')]
+CTLA4.table$BCR.rescaled  <- scale(CTLA4.table$BCR, center = T,scale=T)
+CTLA4.table <- CTLA4.table[order(CTLA4.table$BCR.rescaled),]
 CTLA4.table$id <- as.factor(1:nrow(CTLA4.table))
 
 
@@ -771,24 +771,24 @@ MELA2.CTLA4.performance <- data.frame(foreach(i=c(colnames(CTLA4.table)[7:13]),.
   c(patients='All',Responders='18',Progressors='22',w.p=w.df,AUC=as.numeric(auc.df),AUC.l=as.numeric(auc.df.l),AUC.u=as.numeric(auc.df.u))},row.names = colnames(CTLA4.table)[7:13])
 
 
-MELA2.CTLA4.onlyBCM.performance <- data.frame(t(foreach(i=c('BCM'),.combine='rbind') %do% {
+MELA2.CTLA4.onlyBCR.performance <- data.frame(t(foreach(i=c('BCR'),.combine='rbind') %do% {
   w.df <- t.test(CTLA4.table[,i]~CTLA4.table$CTLA4.2group,alternative = "two.sided")$p.value
   w.df <- ifelse(w.df < 0.001,'< 0.001',round(w.df,digits=3))
   auc.df <-  round(as.numeric(pROC::roc(CTLA4.table$CTLA4.2group,CTLA4.table[,i])$auc),digits=4)
   auc.df.l <- as.numeric(pROC::ci.auc(CTLA4.table$CTLA4.2group,CTLA4.table[,i])[1])
   auc.df.u <- as.numeric(pROC::ci.auc(CTLA4.table$CTLA4.2group,CTLA4.table[,i])[3])
-  c(patients='All',Responders='18',Progressors='22',w.p=w.df,AUC=as.numeric(auc.df),AUC.l=as.numeric(auc.df.l),AUC.u=as.numeric(auc.df.u))}),row.names = c('BCM'))
+  c(patients='All',Responders='18',Progressors='22',w.p=w.df,AUC=as.numeric(auc.df),AUC.l=as.numeric(auc.df.l),AUC.u=as.numeric(auc.df.u))}),row.names = c('BCR'))
 
-MELA2.CTLA4.BCM.performance <- rbind(MELA2.CTLA4.onlyBCM.performance,MELA2.CTLA4.performance)
-MELA2.CTLA4.BCM.performance <- MELA2.CTLA4.BCM.performance %>% add_column(Signatures=colnames(CTLA4.table)[6:13],.before='patients')
-MELA2.CTLA4.BCM.performance$AUC <- as.numeric(MELA2.CTLA4.BCM.performance$AUC)
-MELA2.CTLA4.BCM.performance$AUC.l <- as.numeric(MELA2.CTLA4.BCM.performance$AUC.l)
-MELA2.CTLA4.BCM.performance$AUC.u <- as.numeric(MELA2.CTLA4.BCM.performance$AUC.u)
+MELA2.CTLA4.BCR.performance <- rbind(MELA2.CTLA4.onlyBCR.performance,MELA2.CTLA4.performance)
+MELA2.CTLA4.BCR.performance <- MELA2.CTLA4.BCR.performance %>% add_column(Signatures=colnames(CTLA4.table)[6:13],.before='patients')
+MELA2.CTLA4.BCR.performance$AUC <- as.numeric(MELA2.CTLA4.BCR.performance$AUC)
+MELA2.CTLA4.BCR.performance$AUC.l <- as.numeric(MELA2.CTLA4.BCR.performance$AUC.l)
+MELA2.CTLA4.BCR.performance$AUC.u <- as.numeric(MELA2.CTLA4.BCR.performance$AUC.u)
 
-## ST4 
+## ST5 
 
 # Signatures patients Responders Progressors   w.p    AUC     AUC.l     AUC.u
-# BCM         BCM      All         18          22 0.024 0.7323 0.5737328 0.8909137
+# BCR         BCR      All         18          22 0.024 0.7323 0.5737328 0.8909137
 # T.cells T.cells      All         18          22 0.013 0.7298 0.5699435 0.8896525
 # IFGN       IFGN      All         18          22 0.032 0.6995 0.5314384 0.8675515
 # CD8         CD8      All         18          22 0.045 0.6869 0.5203285 0.8534089
@@ -797,33 +797,33 @@ MELA2.CTLA4.BCM.performance$AUC.u <- as.numeric(MELA2.CTLA4.BCM.performance$AUC.
 # IPS         IPS      All         18          22 0.022 0.7121 0.5495980 0.8746444
 # MUT         MUT      All         18          22 0.064 0.6730 0.5008654 0.8450942
 
-CTLA.AUC.bar <- ggbarplot(MELA2.CTLA4.BCM.performance,x='Signatures',y='AUC',fill='Signatures',
+CTLA.AUC.bar <- ggbarplot(MELA2.CTLA4.BCR.performance,x='Signatures',y='AUC',fill='Signatures',
                           color='white',palette='jco',lab.size = 4, font.tickslab = c(10,'bold'),font.x = c(12, "bold"),
-                          font.y = c(12, "bold"),ylim=c(0.25,0.9),label=format(MELA2.CTLA4.BCM.performance$AUC,digits=3),
+                          font.y = c(12, "bold"),ylim=c(0.25,0.9),label=format(MELA2.CTLA4.BCR.performance$AUC,digits=3),
                           x.text.angle = 90,xlab = 'Gene signatures',ggtheme = theme_few())+
-  geom_errorbar(aes(ymin=MELA2.CTLA4.BCM.performance$AUC.l, ymax=MELA2.CTLA4.BCM.performance$AUC.u), width=.15,alpha=0.25,color='black',
+  geom_errorbar(aes(ymin=MELA2.CTLA4.BCR.performance$AUC.l, ymax=MELA2.CTLA4.BCR.performance$AUC.u), width=.15,alpha=0.25,color='black',
                 position=position_dodge()) +
   labs(fill='')+
   geom_hline(yintercept=0.5, linetype="dashed", 
              color = "black", size=0.5)+theme(legend.position = "none")
 
 ##################### Anti-PD1 analyses 
-MELA3.info$BCM <- base::rowMeans(t(MELA3.exprs[BCM.gene$ENTREZID,]))
-MELA3.info$BCM.bin <- relevel(as.factor(ifelse(ntile(MELA3.info$BCM,n = 2)=='1','Low','High')),ref = 'Low')
+MELA3.info$BCR <- base::rowMeans(t(MELA3.exprs[BCR.genes$ENTREZID,]))
+MELA3.info$BCR.bin <- relevel(as.factor(ifelse(ntile(MELA3.info$BCR,n = 2)=='1','Low','High')),ref = 'Low')
 
 
 # Waterfall plot - PD1 test
 
-tmp.water.PD1 <- MELA3.info[c('PD1_response','PD1.2group','priorCTLA4','BCM','BCM.bin','OS','OS.year')]
-tmp.water.PD1$BCM.rescaled  <- scale(tmp.water.PD1$BCM, center = T,scale=T)
-tmp.water.PD1 <- tmp.water.PD1[order(tmp.water.PD1$BCM.rescaled),]
+tmp.water.PD1 <- MELA3.info[c('PD1_response','PD1.2group','priorCTLA4','BCR','BCR.bin','OS','OS.year')]
+tmp.water.PD1$BCR.rescaled  <- scale(tmp.water.PD1$BCR, center = T,scale=T)
+tmp.water.PD1 <- tmp.water.PD1[order(tmp.water.PD1$BCR.rescaled),]
 tmp.water.PD1$id <- as.factor(1:nrow(tmp.water.PD1))
 
 tmp.water.2group <- tmp.water.PD1[!is.na(tmp.water.PD1$PD1.2group),]
 tmp.water.2group$id <- as.factor(1:nrow(tmp.water.2group))
 tmp.bp <- data.frame(table(tmp.water.PD1$PD1_response));tmp.bp$total <- 'All patients'
 tmp.bp.2group <- data.frame(table(tmp.water.2group$PD1.2group));tmp.bp.2group$total <- 'All patients'
-tmp.water.2group$BCM.bin <- relevel(as.factor(ifelse(ntile(tmp.water.2group$BCM.rescaled,n = 2)=='1','Low','High')),ref = 'Low')
+tmp.water.2group$BCR.bin <- relevel(as.factor(ifelse(ntile(tmp.water.2group$BCR.rescaled,n = 2)=='1','Low','High')),ref = 'Low')
 
 
 tmp.bplot.PD1.2group <- ggplot(tmp.bp.2group, aes(fill=Var1, y=Freq, x=total,label=Freq)) + 
@@ -843,9 +843,9 @@ tmp.bplot.PD1.2group <- ggplot(tmp.bp.2group, aes(fill=Var1, y=Freq, x=total,lab
         axis.title.y = element_text(size=14, face="bold"))
 
 
-PD1.wp.2 <- ggplot(tmp.water.2group, aes(x=id,y=(BCM.rescaled), fill = PD1.2group)) + 
+PD1.wp.2 <- ggplot(tmp.water.2group, aes(x=id,y=(BCR.rescaled), fill = PD1.2group)) + 
   geom_bar(stat='identity')+
-  labs(x = "Patients", y = "BCM score",fill='Anti-PD1 response')+
+  labs(x = "Patients", y = "BCR score",fill='Anti-PD1 response')+
   geom_segment(aes(x= 103/4,xend=103/4,y=2,yend=2))+
   geom_segment(aes(x= 103/1.25,xend=103/1.25,y=2,yend=2))+
   scale_fill_manual(labels= c('Responders','Progressors'),
@@ -860,7 +860,7 @@ PD1.wp.2 <- ggplot(tmp.water.2group, aes(x=id,y=(BCM.rescaled), fill = PD1.2grou
         axis.title.y = element_text(size=14, face="bold"))
 
 
-PD1.boxplot.2 <- ggboxplot(tmp.water.2group,x='PD1.2group',y='BCM.rescaled',
+PD1.boxplot.2 <- ggboxplot(tmp.water.2group,x='PD1.2group',y='BCR.rescaled',
                            bxp.errorbar = TRUE,bxp.errorbar.width=0.15,
                            fill='PD1.2group',error.plot = 'errorbar',
                            size = 0.2,
@@ -869,7 +869,7 @@ PD1.boxplot.2 <- ggboxplot(tmp.water.2group,x='PD1.2group',y='BCM.rescaled',
                            ggtheme = theme_few())+
   stat_compare_means(method = 't.test',tip.length = 0.01,label.x = 2.1,label='p.format',size=5,label.y = 2.5)+
   scale_x_discrete(labels=c('Responders','Progressors')) +
-  labs(x='Anti-PD1 response',y='BCM score',fill='') +
+  labs(x='Anti-PD1 response',y='BCR score',fill='') +
   theme(axis.title.x = element_text(size = 10, face = "bold"),
         axis.title.y = element_text(size = 10, face = "bold"),
         plot.title = element_text(size = 15, face = "bold",hjust = c(0.5,0.5)),
@@ -888,9 +888,9 @@ MELA3.info$IPS <- base::rowMeans(t(MELA3.exprs[which(rownames(MELA3.exprs) %in% 
 MELA3.info$MUT <- MELA3.info$nonsyn_muts
 MELA3.info$T.cells <- as.numeric(MCPcounter::MCPcounter.estimate(MELA3.exprs,featuresType = 'ENTREZ_ID')['T cells',])
 
-tmp <- MELA3.info[c('PD1_response','PD1.2group','priorCTLA4','BCM.bin','OS','OS.year','BCM','T.cells','IFGN','CD8','PDL1','CRMA','IPS','MUT')]
-tmp$BCM.rescaled  <- scale(tmp$BCM, center = T,scale=T)
-tmp <- tmp[order(tmp$BCM.rescaled),]
+tmp <- MELA3.info[c('PD1_response','PD1.2group','priorCTLA4','BCR.bin','OS','OS.year','BCR','T.cells','IFGN','CD8','PDL1','CRMA','IPS','MUT')]
+tmp$BCR.rescaled  <- scale(tmp$BCR, center = T,scale=T)
+tmp <- tmp[order(tmp$BCR.rescaled),]
 tmp$id <- as.factor(1:nrow(tmp))
 
 PD1.table <- tmp[!is.na(tmp$PD1.2group),]
@@ -920,41 +920,41 @@ MELA3.PD1.performance.ipi.treated <- data.frame(foreach(i=c(colnames(PD1.table)[
   c(patients='ipi-treated',Responders='16',Progressors='23',w.p=w.df,auc=auc.df)},row.names = colnames(PD1.table)[8:14])
 
 
-MELA3.PD1.onlyBCM.performance.all <- data.frame(t(foreach(i='BCM',.combine='rbind') %do% {
+MELA3.PD1.onlyBCR.performance.all <- data.frame(t(foreach(i='BCR',.combine='rbind') %do% {
   w.df <- t.test(PD1.table[,i]~PD1.table$PD1.2group,alternative = "two.sided")$p.value
   w.df <- ifelse(w.df < 0.001,'< 0.001',round(w.df,digits=3))
   auc.df <-  round(as.numeric(pROC::roc(PD1.table$PD1.2group,PD1.table[,i])$auc),digits=4)
-  c(patients='All',Responders='47',Progressors='56',w.p=w.df,auc=auc.df,auc.l=auc.df.l,auc.u=auc.df.u)}),row.names ='BCM')
+  c(patients='All',Responders='47',Progressors='56',w.p=w.df,auc=auc.df,auc.l=auc.df.l,auc.u=auc.df.u)}),row.names ='BCR')
 
-MELA3.PD1.onlyBCM.performance.ipi.naive <-  data.frame(t(foreach(i='BCM',.combine='rbind') %do% {
+MELA3.PD1.onlyBCR.performance.ipi.naive <-  data.frame(t(foreach(i='BCR',.combine='rbind') %do% {
   tmp.ipi.naive <- PD1.table[PD1.table$priorCTLA4==0,]
   w.df <- t.test(tmp.ipi.naive[,i]~tmp.ipi.naive$PD1.2group,alternative = "two.sided")$p.value
   w.df <- ifelse(w.df < 0.001,'< 0.001',round(w.df,digits=3))
   auc.df <-  round(as.numeric(pROC::roc(tmp.ipi.naive$PD1.2group,tmp.ipi.naive[,i])$auc),digits=4)
-  c(patients='ipi-naive',Responders='31',Progressors='33',w.p=w.df,auc=auc.df)}),row.names ='BCM')
+  c(patients='ipi-naive',Responders='31',Progressors='33',w.p=w.df,auc=auc.df)}),row.names ='BCR')
 
-MELA3.PD1.onlyBCM.performance.ipi.treated <- data.frame(t(foreach(i='BCM',.combine='rbind') %do% {
+MELA3.PD1.onlyBCR.performance.ipi.treated <- data.frame(t(foreach(i='BCR',.combine='rbind') %do% {
   tmp.ipi.treated <- PD1.table[PD1.table$priorCTLA4==1,]
   w.df <- t.test(tmp.ipi.treated[,i]~tmp.ipi.treated$PD1.2group,alternative = "two.sided")$p.value
   w.df <- ifelse(w.df < 0.001,'< 0.001',round(w.df,digits=3))
   auc.df <-  round(as.numeric(pROC::roc(tmp.ipi.treated$PD1.2group,tmp.ipi.treated[,i])$auc),digits=4)
-  c(patients='ipi-treated',Responders='16',Progressors='23',w.p=w.df,auc=auc.df)}),row.names ='BCM')
+  c(patients='ipi-treated',Responders='16',Progressors='23',w.p=w.df,auc=auc.df)}),row.names ='BCR')
 
 
-MELA3.PD1.BCM.performance.all <- rbind(MELA3.PD1.onlyBCM.performance.all,MELA3.PD1.performance.all)
-MELA3.PD1.BCM.performance.ipi.naive <- rbind(MELA3.PD1.onlyBCM.performance.ipi.naive,MELA3.PD1.performance.ipi.naive)
-MELA3.PD1.BCM.performance.ipi.treated <- rbind(MELA3.PD1.onlyBCM.performance.ipi.treated,MELA3.PD1.performance.ipi.treated)
+MELA3.PD1.BCR.performance.all <- rbind(MELA3.PD1.onlyBCR.performance.all,MELA3.PD1.performance.all)
+MELA3.PD1.BCR.performance.ipi.naive <- rbind(MELA3.PD1.onlyBCR.performance.ipi.naive,MELA3.PD1.performance.ipi.naive)
+MELA3.PD1.BCR.performance.ipi.treated <- rbind(MELA3.PD1.onlyBCR.performance.ipi.treated,MELA3.PD1.performance.ipi.treated)
 
-PD1.BCM <- cbind(MELA3.PD1.BCM.performance.all[,-c(6,7)],MELA3.PD1.BCM.performance.ipi.naive,MELA3.PD1.BCM.performance.ipi.treated)
-PD1.BCM <- PD1.BCM %>% add_column(Signatures=colnames(PD1.table)[7:14],.before='patients')
-bar.comparisons <- list(c('BCM','T.cells'),c('BCM','IFGN'),c('BCM','CD8'),c('BCM','PDL1'),c('BCM','CRMA'),c('BCM','IPS'),c('BCM','MUT'))
+PD1.BCR <- cbind(MELA3.PD1.BCR.performance.all[,-c(6,7)],MELA3.PD1.BCR.performance.ipi.naive,MELA3.PD1.BCR.performance.ipi.treated)
+PD1.BCR <- PD1.BCR %>% add_column(Signatures=colnames(PD1.table)[7:14],.before='patients')
+bar.comparisons <- list(c('BCR','T.cells'),c('BCR','IFGN'),c('BCR','CD8'),c('BCR','PDL1'),c('BCR','CRMA'),c('BCR','IPS'),c('BCR','MUT'))
 
-PD1.BCM$auc <- signif(as.numeric(PD1.BCM$auc),digits = 3)
-PD1.AUC.bar <- ggbarplot(PD1.BCM,x='Signatures',y='auc',fill='Signatures',
+PD1.BCR$auc <- signif(as.numeric(PD1.BCR$auc),digits = 3)
+PD1.AUC.bar <- ggbarplot(PD1.BCR,x='Signatures',y='auc',fill='Signatures',
                          color='white',palette='jco',lab.size = 4, font.tickslab = c(10,'bold'),font.x = c(12, "bold"),
                          font.y = c(12, "bold"),ylim=c(0.25,0.8),ylab='AUC',
                          x.text.angle = 90,xlab = 'Gene signatures',label = T,ggtheme = theme_few(),lab.nb.digits = 3)+
-  geom_errorbar(aes(ymin=as.numeric(MELA3.PD1.BCM.performance.all$auc.l), ymax=as.numeric(MELA3.PD1.BCM.performance.all$auc.u)), width=.15,alpha=0.25,color='black',
+  geom_errorbar(aes(ymin=as.numeric(MELA3.PD1.BCR.performance.all$auc.l), ymax=as.numeric(MELA3.PD1.BCR.performance.all$auc.u)), width=.15,alpha=0.25,color='black',
                 position=position_dodge())+
   labs(fill='')+
   geom_hline(yintercept=0.5, linetype="dashed", 
@@ -977,18 +977,18 @@ ggpubr::ggarrange(tmp.bplot.PD1.2group,PD1.wp.2,PD1.boxplot.2,PD1.AUC.bar,
 
 # Figure 4 KMs G-H
 
-par(mfrow=c(1,3),omi=c(0, 0, 0, 0),tcl=-0.5,mai=c(1,1,0.5,0.5))
+par(mfrow=c(1,2),omi=c(0, 0, 0, 0),tcl=-0.5,mai=c(1,1,0.5,0.5))
 
-survplot(Surv(tmp.water.2group$OS.year, tmp.water.2group$OS)~BCM.bin,show.nrisk = T,data=tmp.water.2group,stitle='',subset = tmp.water.2group$OS.year <= 2.6,
-         xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main='BCM: Response to Anti-PD1 therapy',
-         lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('BCM < Median','BCM > Median'))
+survplot(Surv(tmp.water.2group$OS.year, tmp.water.2group$OS)~BCR.bin,show.nrisk = T,data=tmp.water.2group,stitle='',subset = tmp.water.2group$OS.year <= 2.6,
+         xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main='BCR: Response to Anti-PD1 therapy',
+         lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('BCR < Median','BCR > Median'))
 pval = summary(coxph(Surv(tmp.Low$OS.year, tmp.Low$OS) ~ B.lineage, data= tmp.Low))$coeff[,'Pr(>|z|)']
 pval=ifelse(formatC(format='f',pval, digits=3) < '0.001', '< 0.001',formatC(format='f',pval, digits=3))
 
 
-survplot(Surv(tmp.water.CTLA4$OS.year, tmp.water.CTLA4$OS)~BCM.bin,show.nrisk = T,data=tmp.water.CTLA4,stitle='',
-         xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main='BCM: Response to Anti-CTLA4 therapy',
-         lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('BCM < Median','BCM > Median'))
+survplot(Surv(tmp.water.CTLA4$OS.year, tmp.water.CTLA4$OS)~BCR.bin,show.nrisk = T,data=tmp.water.CTLA4,stitle='',
+         xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main='BCR: Response to Anti-CTLA4 therapy',
+         lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('BCR < Median','BCR > Median'))
 pval = summary(coxph(Surv(tmp.Low$OS.year, tmp.Low$OS) ~ B.lineage, data= tmp.Low))$coeff[,'Pr(>|z|)']
 pval=ifelse(formatC(format='f',pval, digits=3) < '0.001', '< 0.001',formatC(format='f',pval, digits=3))
 
