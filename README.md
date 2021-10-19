@@ -31,7 +31,7 @@ All data derived from the public cohorts of META-NSCLC are saved in this file.
 All data derived from the public cohorts of META-SKCM are saved in this file. 
 
 ### sig.gene.RData
-All significant genes from interaction analyses and genes included in BCM signature are stored in this file.
+All significant genes from interaction analyses and genes included in B cell-related gene signature are stored in this file.
 
 
 Please contact Arian Lundberg : **arian.lundberg@ucsf.edu** if you have any furthur questions. 
