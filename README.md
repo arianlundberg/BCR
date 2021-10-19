@@ -1,12 +1,12 @@
-# BCM
+# BCR
 
-## "Manuscript title" 
+## "B cell-related gene signature and cancer immunotherapy response" 
 ### link to manuscript  Lundberg et al.
 
 ### Written by ARIAN LUNDBERG 
 
 All R codes (R statistical software version 4.1.0) to reproduce main figures of 
-"Manuscript title" 
+"B cell-related gene signature and cancer immunotherapy response" 
 Lundberg et al. are available in "~/RCodes/"
 
 ### functions.R
