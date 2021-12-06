@@ -1,41 +1,12 @@
 ## this code is to generate main figures of the manuscript
 
 ## load the RData all required datasets and libraries
+source(file="~/Documents/GitHub/BCR/Rcodes/functions.R")
 
 ### RData files are accessible here
 # https://www.dropbox.com/sh/ads00s0zqh9iwqb/AABq7S_T0dNgxfaSYEvHvyIXa?dl=0
-library(ggcorrplot)
-library(sjPlot)
-library(sjlabelled)
-library(sjmisc)
-library(webshot)
-library(htmlwidgets)
-library(metafor)
-library(metap)
-library(purrr)
-library(biomaRt)
-library(ggplot2)
-library(forestplot)
-library(ggExtra)
-library(survival)
-library(tibble)
-library(doParallel)
-library(org.Hs.eg.db)
-library(survminer)
-library(ComplexHeatmap)
-library(survplot)
-library(plyr)
-library(tableone)
-library(ggthemes)
-library(ggpubr)
-library(dplyr)
 
-load(file = "~/Dropbox/Public/BCR/RData/META-BRCA.RData")
-load(file="~/Dropbox/Public/BCR/RData/META-CRC.RData")
-load(file="~/Dropbox/Public/BCR/RData/META-NSCLC.RData")
-load(file="~/Dropbox/Public/BCR/RData/META-SKCM.RData")
-load(file="~/Dropbox/Public/BCR/RData/sig.genes.RData")
-source(file="~/Documents/GitHub/BCR/Rcodes/functions.R")
+
 
 ## function to generate interaction values of all genes in the dataset
 # the results are saved as a list in int.list
@@ -89,7 +60,7 @@ first.table.genes <- tmp.table %>% mutate(p.=replace(p.,p. <0.001,'< 0.001'),FDR
 
 ####
 
-### generating groups of B.cell Low/T.cells Low - B.cell Low/T.cells High - B.cell High/T cells low - B.cell High/T.cells High
+### generating groups of B.cell Low/T.cell Low - B.cell Low/T.cell High - B.cell High/T.cell low - B.cell High/T.cell High
 ## CTL.Bcell is a data.frame with subset of the data to generate figure 1A - C
 
 CTL.Bcell$CTL.B.groups <- as.factor(ifelse(CTL.Bcell$B.bin %in% '1'&CTL.Bcell$CTL.bin %in% '1','I',
@@ -100,10 +71,10 @@ CTL.Bcell$CTL.B.groups <- as.factor(ifelse(CTL.Bcell$B.bin %in% '1'&CTL.Bcell$CT
 
 #### Correlation plot - Figure 1A
 
-tmp.plot <- ggplot(CTL.Bcell, aes(x=CTL, y=B.lineage,color=CTL.B.groups)) + 
+tmp.plot <- ggplot(CTL.Bcell, aes(x=CTL, y=B.lineage,color=CTL.B.groups)) +
   geom_point(size = 2) + ggsci::scale_color_jco() +
-  geom_smooth(method=lm, color='black',fill='lightcyan4') + 
-  scale_x_continuous(name=expression(bold("T cells")),limits = c(-2.5,2.5)) + scale_y_continuous(name=expression(bold("B cell lineage abundance score (B.cell)")),limits = c(-2.5,2.5)) +
+  geom_smooth(method=lm, color='black',fill='lightcyan4') +
+  scale_x_continuous(name=expression(bold("T.cell")),limits = c(-2.5,2.5)) + scale_y_continuous(name=expression(bold("B cell lineage abundance score (B.cell)")),limits = c(-2.5,2.5)) +
   geom_vline(xintercept=median(CTL.Bcell$CTL), linetype="dashed", color = "hotpink4")+
   geom_hline(yintercept=median(CTL.Bcell$B.lineage), linetype="dashed", color = "hotpink4")+
   annotate("text", x = min(CTL.Bcell$CTL)+1, y = max(CTL.Bcell$B.lineage)-1, label = my.corr.test(CTL.Bcell$B.lineage, CTL.Bcell$CTL)[1],colour='black',fontface=2,size=8) +
@@ -113,9 +84,9 @@ tmp.plot <- ggplot(CTL.Bcell, aes(x=CTL, y=B.lineage,color=CTL.B.groups)) +
         axis.title.x = element_text(size = 24,face='bold'),
         axis.title.y = element_text(size = 24,face='bold'),
         plot.title = element_text(size = 12, face = "bold"),
-        panel.grid.major = element_blank(), 
+        panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        panel.background = element_blank(), 
+        panel.background = element_blank(),
         axis.text.x=element_text(size = 22,angle = 45,hjust = c(1,1),face='bold'),
         axis.text.y=element_text(size = 22,face='bold'),
         plot.margin = unit(c(0.5,0.5,0.7,0.5),'cm'),
@@ -124,13 +95,13 @@ tmp.plot <- ggplot(CTL.Bcell, aes(x=CTL, y=B.lineage,color=CTL.B.groups)) +
         legend.key.size = unit(1.3, "cm"),legend.title = element_text(size = 15,face='bold'),legend.text = element_text(size = 15))
 
 
-Figure1A <- ggExtra::ggMarginal(tmp.plot, type = 'densigram',fill='lightsteelblue2') 
+Figure1A <- ggExtra::ggMarginal(tmp.plot, type = 'densigram',fill='lightsteelblue2')
 
 
-###### 
+######
 
-# generating data for the forestplot
-
+# generating data for the forestplot - Figure 1B
+######
 model.B <- coxph(Surv(CTL.Bcell$OS.year, CTL.Bcell$OS) ~ B.lineage, data= CTL.Bcell)
 model.CTL <- coxph(Surv(CTL.Bcell$OS.year, CTL.Bcell$OS) ~ CTL, data= CTL.Bcell)
 
@@ -143,18 +114,18 @@ u<- c(signif(summary(model.B)$conf.int[,4],digits=),signif(summary(model.CTL)$co
 np <- c(paste(c(length(CTL.Bcell$B.lineage),length(CTL.Bcell$B.lineage),length(CTL.Bcell$B.lineage),length(CTL.Bcell$B.lineage),length(CTL.Bcell$CTL))," (",
               signif(c(length(CTL.Bcell$B.lineage),length(CTL.Bcell$B.lineage),length(CTL.Bcell$B.lineage),length(CTL.Bcell$B.lineage),length(CTL.Bcell$CTL))/766*100,digits=1),")",sep=""))
 
-tabletext<-cbind(c(NA,'Univariate',c(' B cells',' T.cells','Multivariate',' B cells',' T.cells')),
+tabletext<-cbind(c(NA,'Univariate',c(' B.cell',' T.cell','Multivariate',' B.cell',' T.cell')),
                  c("HR",NA,format(summary(model.B)$coeff[,2],digits=2),format(summary(model.CTL)$coeff[,2],digits=2),NA,format(summary(model)$coeff[,2],digits=2)),
                  c('95% CI',NA,paste0('[',format(l,digits = 3),' - ',format(u,digits=3),']',sep = '')),
                  c("Coefficient",NA,format(summary(model.B)$coeff[,1],digits=2),format(summary(model.CTL)$coeff[,1],digits=2),NA,format(summary(model)$coeff[,1],digits=2)),
                  c("p.",NA,format(summary(model.B)$coeff[,5],digits=2),format(summary(model.CTL)$coeff[,5],digits=2),NA,format(summary(model)$coeff[,5],digits=2)))
 tabletext[5,3] <- NA
 tabletext[,5] <- ifelse(tabletext[,5] < 0.001,'< 0.001',tabletext[,5])
-
+######
 
 ##### Forestplot Figure 1B
 forestplot::forestplot(tabletext,c(NA,NA,m),c(NA,NA,l),c(NA,NA,u),zero=1,align = c("l", "c", "c","c","c","c"),
-                                   graph.pos=6, 
+                                   graph.pos=6,
                                    title="Hazard Ratio",lwd.ci=2, ci.vertices=TRUE, ci.vertices.height = 0.05,lwd.zero=3,
                                    hrzl_lines = list("2" = gpar(lwd=3, columns=1:6, col = "black"),
                                                      "3" = gpar(lwd=1, columns=1, col = "black"),
@@ -172,7 +143,7 @@ forestplot::forestplot(tabletext,c(NA,NA,m),c(NA,NA,l),c(NA,NA,u),zero=1,align =
 
 tmp.fit <- survfit(Surv(CTL.Bcell$OS.year, CTL.Bcell$OS) ~ CTL.B.groups, data = CTL.Bcell)
 
-Figure1C <- ggsurvplot(tmp.fit, data = CTL.Bcell, palette = "jco", pval=T,risk.table = TRUE,legend.labs=c('B.cell Low/T.cells Low','B.cell Low/T.cells High','B.cell High/T.cells Low','B.cell High/T.cells High'),
+Figure1C <- ggsurvplot(tmp.fit, data = CTL.Bcell, palette = "jco", pval=T,risk.table = TRUE,legend.labs=c('B.cell Low/T.cell Low','B.cell Low/T.cell High','B.cell High/T.cell Low','B.cell High/T.cell High'),
                        font.legend=20,font.x=20,font.y=20,font.tickslab=20,pval.size=10,risk.table.fontsize=8,font.main=20,xlim = c(0,10),legend='right',
                        risk.table.col = "strata",risk.table.y.text=F,legend.title='Patient groups',
                        xlab='Time (years)',ylab='Overall survival')+
@@ -180,8 +151,9 @@ Figure1C <- ggsurvplot(tmp.fit, data = CTL.Bcell, palette = "jco", pval=T,risk.t
 
 
 
-
+######
 # Figure 2
+#######
 # Figure 2A BCR correlation plot
 
 #### BCR genes
@@ -194,9 +166,10 @@ Figure2A <- draw(Heatmap(corr.score.BCR*100,col=circlize::colorRamp2(c(-100, 0, 
   grid.text(sprintf("%.1f", corr.score.BCR[i, j]*100), x, y, gp = gpar(fontsize = 10))
 },column_km =2 ,row_km = 2,row_gap = unit(0.8, "mm"),heatmap_legend_param = list(direction = "horizontal"),column_title = ' ',row_title = ' ',column_gap = unit(0.8, "mm"),border = T,column_names_rot = 45,name='Pearson Correlation (%)'),heatmap_legend_side='bottom')
 
-  
-# Figure 2B BCR Forest plot
 
+# Figure 2B BCR Forest plot - preparing the data
+
+######
 BRCA.FP.data <- merge(TNBC.info,TNBC.exprs,by='row.names',sort=F,all.x=T);rownames(BRCA.FP.data) <- BRCA.FP.data$Row.names;BRCA.FP.data <- BRCA.FP.data[,-1]
 model.BRCA <- coxph(Surv(BRCA.FP.data$OS.year, BRCA.FP.data$OS) ~ B.lineage*BCR, data= BRCA.FP.data)
 
@@ -217,8 +190,8 @@ u.BRCA<- c(NA,NA,format(signif(summary(model.BRCA)$conf.int[1,4],digits = 4)),
 np.BRCA <- c(paste(nrow(BRCA.FP.data)," (",'100',")",sep=""))
 np.BRCA[np.BRCA=='NA (NA)'] <- NA
 
-tabletext.BRCA<-cbind(c(c(NA,'META-BRCA','B cells','BCR','B cells * BCR')),
-                      c("No. of Patients (%)",np.BRCA,NA,NA,NA), 
+tabletext.BRCA<-cbind(c(c(NA,'META-BRCA','B.cell','BCR','B.cell * BCR')),
+                      c("No. of Patients (%)",np.BRCA,NA,NA,NA),
                       c("HR",NA,format((summary(model.BRCA)$coeff[,2]),digits=3)[1],format((summary(model.BRCA)$coeff[,2])[2],digits=3),format((summary(model.BRCA)$coeff[,2])[3],digits=4)),
                       c('95% CI',NA,paste0('[',l.BRCA[3],' - ',u.BRCA[3],']',sep = ''),
                         paste0('[',l.BRCA[6],' - ',u.BRCA[6],']',sep = ''),
@@ -231,9 +204,9 @@ tabletext.BRCA<-cbind(c(c(NA,'META-BRCA','B cells','BCR','B cells * BCR')),
 lower.FP.BRCA <- round(as.numeric(c(NA,NA,l.BRCA[c(3,6,9)])),digits=3)
 upper.FP.BRCA <- round(as.numeric(c(NA,NA,u.BRCA[c(3,6,9)])),digits=3)
 mean.FP.BRCA <- round(as.numeric(c(NA,NA,m.BRCA[c(3,6,9)])),digits = 3)
+######
+#generating a forestplot - Figure 2B
 
-#generating a forestplot 
-# Figure 2B
 forestplot::forestplot(tabletext.BRCA,mean.FP.BRCA,lower.FP.BRCA,upper.FP.BRCA,zero=1,
                        title="Hazard Ratio",lwd.ci=2, ci.vertices=TRUE, ci.vertices.height = 0.05,
                        hrzl_lines = list("2" = gpar(lwd=3, columns=1:6, col = "black"),
@@ -251,17 +224,18 @@ forestplot::forestplot(tabletext.BRCA,mean.FP.BRCA,lower.FP.BRCA,upper.FP.BRCA,z
 
 # Figure 2C and D BCR Kaplan Meiers
 
-#### finding an optimal cutpoint based on HR where at least 20% of patients are in one group 
+#### finding an optimal cutpoint based on HR where at least 20% of patients are in one group
+######
 Gene.Low.TNBC <- foreach (i=c(5:ncol(TNBC.info))) %:%
   foreach(j=c(1:766),.combine='rbind',.errorhandling = 'pass') %dopar% {
     tmp <- as.data.frame(TNBC.info[TNBC.info$B.binary %in% 'Low',])
-    gene <- summary(coxph(Surv(tmp$OS.year, tmp$OS) ~ B.lineage, 
+    gene <- summary(coxph(Surv(tmp$OS.year, tmp$OS) ~ B.lineage,
                           data= tmp, subset = tmp[,i] < TNBC.info[,i][j]))
     c(gene=TNBC.info[,i][j],Coeff=gene$coeff[,c('exp(coef)')],p=gene$coeff[,c('Pr(>|z|)')])}
 Gene.High.TNBC <- foreach (i=c(5:ncol(TNBC.info))) %:%
   foreach(j=c(1:766),.combine='rbind',.errorhandling = 'pass') %dopar% {
     tmp <- as.data.frame(TNBC.info[TNBC.info$B.binary %in% 'High',])
-    gene <- summary(coxph(Surv(tmp$OS.year, tmp$OS) ~ B.lineage, 
+    gene <- summary(coxph(Surv(tmp$OS.year, tmp$OS) ~ B.lineage,
                           data= tmp, subset = tmp[,i] < TNBC.info[,i][j]))
     c(gene=TNBC.info[,i][j],Coeff=gene$coeff[,c('exp(coef)')],p=gene$coeff[,c('Pr(>|z|)')])}
 
@@ -281,12 +255,11 @@ names(Gene.TNBC) <- colnames(TNBC.info)[5:ncol(TNBC.info)]
 tmp.cut.BCR <- data.frame(cutpoint=Gene.TNBC$BCR$gene,HR.ratio=Gene.TNBC$BCR$Coeff.High-Gene.TNBC$BCR$Coeff.Low)
 tmp.cut.BCR$percent <- percent_rank(tmp.cut.BCR$HR.ratio)
 cut.point.BCR <- tmp.cut.BCR[which.max(tmp.cut.BCR[tmp.cut.BCR$percent > 0.2&tmp.cut.BCR$percent < 0.8,]$HR.ratio),]$cutpoint
+######
 
+# FIGURE 2C-D - KMs
 
-#### generating the plots 
-# FIGURE 2C-D
-
-par(mfrow=c(2,2),mai = c(1, 1.25, 0.75, 0.5))
+par(mfrow=c(1,2),mai = c(1, 1.25, 0.75, 0.5))
 
 foreach(i='BCR',.combine='cbind') %do% {
   tmp.Low <-   TNBC.info[TNBC.info[,i] < cut.point.BCR,]
@@ -306,40 +279,39 @@ foreach(i='BCR',.combine='cbind') %do% {
 }
 
 
-
-
-# Figure 3
-# Figure 3 A-C-E - correlation plots
-
-#### correlation plots
-### NSCLC
+# Figure 3 - A-E - correlation plots
+####
 # Figure 3A
+### NSCLC
 
 LUNG.corr.score.BCR <- cor(x = t(LUNG.exprs[BCR.genes$ENTREZID,]),method = 'pearson')
 rownames(LUNG.corr.score.BCR)= BCR.genes$SYMBOL;colnames(LUNG.corr.score.BCR)= BCR.genes$SYMBOL
-LUNG.B.BCR <- Heatmap(LUNG.corr.score.BCR*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
+CRC.corr.score.BCR <- cor(x = t(CRC.exprs[BCR.genes$ENTREZID,]),method = 'pearson')
+rownames(CRC.corr.score.BCR)= BCR.genes$SYMBOL;colnames(CRC.corr.score.BCR)= BCR.genes$SYMBOL
+MELA.corr.score.BCR <- cor(x = t(MELA.exprs[BCR.genes$ENTREZID,]),method = 'pearson')
+rownames(MELA.corr.score.BCR)= BCR.genes$SYMBOL;colnames(MELA.corr.score.BCR)= BCR.genes$SYMBOL
+
+Figure3A <- Heatmap(LUNG.corr.score.BCR*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
   grid.text(sprintf("%.1f", LUNG.corr.score.BCR[i, j]*100), x, y, gp = gpar(fontsize = 7))
 },heatmap_legend_param = list(direction = "horizontal"),column_title = " ",row_title = "META-NSCLC",row_gap = unit(0.8, "mm"), column_gap = unit(0.8, "mm"),border = T,column_names_rot = 45,name='Pearson Correlation (%)')
 
+# Figure 3C
 ### CRC
-# Figure 3B
-CRC.corr.score.BCR <- cor(x = t(CRC.exprs[BCR.genes$ENTREZID,]),method = 'pearson')
-rownames(CRC.corr.score.BCR)= BCR.genes$SYMBOL;colnames(CRC.corr.score.BCR)= BCR.genes$SYMBOL
-CRC.B.BCR <- Heatmap(CRC.corr.score.BCR*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
+
+Figure3C <- Heatmap(CRC.corr.score.BCR*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
   grid.text(sprintf("%.1f", CRC.corr.score.BCR[i, j]*100), x, y, gp = gpar(fontsize = 7))
 },heatmap_legend_param = list(direction = "horizontal"),column_title = " ",row_title = "META-CRC",row_gap = unit(0.8, "mm"), column_gap = unit(0.8, "mm"),border = T,column_names_rot = 45,name='Pearson Correlation (%)')
 
+# Figure 3E
 ### SKCM
-# Figure 3C
-MELA.corr.score.BCR <- cor(x = t(MELA.exprs[BCR.genes$ENTREZID,]),method = 'pearson')
-rownames(MELA.corr.score.BCR)= BCR.genes$SYMBOL;colnames(MELA.corr.score.BCR)= BCR.genes$SYMBOL
-MELA.B.BCR <- Heatmap(MELA.corr.score.BCR*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
+
+Figure3E <- Heatmap(MELA.corr.score.BCR*100,col=circlize::colorRamp2(c(-100, 0, 100), c("green", "white", "red")),cell_fun = function(j, i, x, y, width, height, fill) {
   grid.text(sprintf("%.1f", MELA.corr.score.BCR[i, j]*100), x, y, gp = gpar(fontsize = 7))
 },heatmap_legend_param = list(direction = "horizontal"),column_title = " ",row_title = "META-SKCM",row_gap = unit(0.8, "mm"), column_gap = unit(0.8, "mm"),border = T,column_names_rot = 45,name='Pearson Correlation (%)')
 
 
-# Figure3 B-D-F KMs 
-
+# Figure3 B-F KMs
+#####
 par(mfrow=c(3,4),omi=c(0, 0.9, 0, 0))
 
 
@@ -348,14 +320,14 @@ foreach(i='BCR',.combine='cbind') %do% {
   b.Low <- relevel(as.factor(ifelse(ntile(tmp.Low[,4],n = 2)=='1','Low','High')),ref = 'Low')
   tmp.High <-  LUNG.info[LUNG.info[,i] > cut.point.BCR.LUNG,]
   b.High <- relevel(as.factor(ifelse(ntile(tmp.High[,4],n = 2)=='1','Low','High')),ref = 'Low')
-  
+
   survplot(Surv(tmp.Low$OS.year, tmp.Low$OS)~b.Low,show.nrisk = T,data=tmp.Low,stitle='',xlim=c(0,10),
            xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main=paste(colnames(tmp.Low[i]),":","Low",sep = ""),
            lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('B.cell < Median','B.cell > Median'))
   pval = summary(coxph(Surv(tmp.Low$OS.year, tmp.Low$OS) ~ B.lineage, data= tmp.Low))$coeff[,'Pr(>|z|)']
   pval=ifelse(formatC(format='f',pval, digits=3) < '0.001', '< 0.001',formatC(format='f',pval, digits=3))
   mtext("B cell-related gene signature", side = 3,outer = T,cex=1.5,font = 1)
-  
+
   survplot(Surv(tmp.High$OS.year, tmp.High$OS)~b.High,show.nrisk = T,data=tmp.High,stitle='',xlim=c(0,10),
            xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main=paste(colnames(tmp.High[i]),":","High",sep = ""),
            lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('B.cell < Median','B.cell > Median'))
@@ -371,14 +343,14 @@ foreach(i='BCR',.combine='cbind') %do% {
   b.Low <- relevel(as.factor(ifelse(ntile(tmp.Low[,4],n = 2)=='1','Low','High')),ref = 'Low')
   tmp.High <-  CRC.info[CRC.info[,i] > cut.point.BCR.CRC,]
   b.High <- relevel(as.factor(ifelse(ntile(tmp.High[,4],n = 2)=='1','Low','High')),ref = 'Low')
-  
+
   survplot(Surv(tmp.Low$OS.year, tmp.Low$OS)~b.Low,show.nrisk = T,data=tmp.Low,stitle='',xlim=c(0,10),
            xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main=paste(colnames(tmp.Low[i]),":","Low",sep = ""),
            lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('B.cell < Median','B.cell > Median'))
   pval = summary(coxph(Surv(tmp.Low$OS.year, tmp.Low$OS) ~ B.lineage, data= tmp.Low))$coeff[,'Pr(>|z|)']
   pval=ifelse(formatC(format='f',pval, digits=3) < '0.001', '< 0.001',formatC(format='f',pval, digits=3))
   mtext("B cell-related gene signature", side = 3,outer = T,cex=1.5,font = 1)
-  
+
   survplot(Surv(tmp.High$OS.year, tmp.High$OS)~b.High,show.nrisk = T,data=tmp.High,stitle='',xlim=c(0,10),
            xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main=paste(colnames(tmp.High[i]),":","High",sep = ""),
            lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('B.cell < Median','B.cell > Median'))
@@ -395,14 +367,14 @@ foreach(i='BCR',.combine='cbind') %do% {
   b.Low <- relevel(as.factor(ifelse(ntile(tmp.Low[,4],n = 2)=='1','Low','High')),ref = 'Low')
   tmp.High <-  MELA.info[MELA.info[,i] > cut.point.BCR.MELA,]
   b.High <- relevel(as.factor(ifelse(ntile(tmp.High[,4],n = 2)=='1','Low','High')),ref = 'Low')
-  
+
   survplot(Surv(tmp.Low$OS.year, tmp.Low$OS)~b.Low,show.nrisk = T,data=tmp.Low,stitle='',xlim=c(0,10),
            xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main=paste(colnames(tmp.Low[i]),":","Low",sep = ""),
            lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('B.cell < Median','B.cell > Median'))
   pval = summary(coxph(Surv(tmp.Low$OS.year, tmp.Low$OS) ~ B.lineage, data= tmp.Low))$coeff[,'Pr(>|z|)']
   pval=ifelse(formatC(format='f',pval, digits=3) < '0.001', '< 0.001',formatC(format='f',pval, digits=3))
   mtext("B cell-related gene signature", side = 3,outer = T,cex=1.5,font = 1)
-  
+
   survplot(Surv(tmp.High$OS.year, tmp.High$OS)~b.High,show.nrisk = T,data=tmp.High,stitle='',xlim=c(0,10),
            xlab=expression(bold('Time (years)')),ylab=expression(bold("OS")),main=paste(colnames(tmp.High[i]),":","High",sep = ""),
            lwd=3,col=c("royalblue3","tomato3"),legend.pos = 'bottomleft',mark=20,cex.lab=1.5, cex.main=1.5,snames = c('B.cell < Median','B.cell > Median'))
@@ -411,7 +383,8 @@ foreach(i='BCR',.combine='cbind') %do% {
 }
 
 
-# Figure 3G - data-prep
+# Figure 3G - data-prep for the forestplot
+#########
 
 LUNG1.pc <- LUNG1.info %>% dplyr::select('age at surgery:ch1','gender:ch1')
 colnames(LUNG1.pc) <- c('Age','Gender');LUNG1.pc$Age <- as.numeric(LUNG1.pc$Age)
@@ -470,7 +443,7 @@ CRC.table <- print(ST_CRC,quote = FALSE, noSpaces = TRUE, printToggle = FALSE)
 
 patients.META2 <- colnames(MELA2.exprs[,-c(which(colnames(MELA2.exprs) %in% colnames(MELA3.exprs)))])
 
-MELA1.pc <- data.frame(Age=rep(NA,81),Gender=rep(NA,81),Pstage=rep(NA,81),Metas=rep(NA,81),RECIST=rep(NA,81)) 
+MELA1.pc <- data.frame(Age=rep(NA,81),Gender=rep(NA,81),Pstage=rep(NA,81),Metas=rep(NA,81),RECIST=rep(NA,81))
 
 MELA2.pc <- MELA2.info[patients.META2,] %>% dplyr::select('age_start','gender','M','RECIST')
 colnames(MELA2.pc) <- c('Age','Gender','Metas','RECIST');MELA2.pc$Pstage <- NA
@@ -536,8 +509,8 @@ np.NSCLC <- c(paste(c(length(LUNG.FP.data$Age),NA,table(LUNG.FP.data$Gender),NA,
                     signif(c(length(LUNG.FP.data$Age),NA,table(LUNG.FP.data$Gender),NA,table(LUNG.FP.data$Pstage,useNA='always'),length(LUNG.FP.data$B.lineage),length(LUNG.FP.data$BCR),length(LUNG.FP.data$BCR))/nrow(LUNG.FP.data)*100,digits=1),")",sep=""))
 np.NSCLC[np.NSCLC=='NA (NA)'] <- NA
 
-tabletext.NSCLC<-cbind(c(c(NA,'META-NSCLC','Age','Gender','    Female','    Male','Tumour Stage','    I','    II','    III','    IV','    Missing cases','B cells','BCR','B cells * BCR')),
-                       c("No. of Patients (%)",NA,np.NSCLC), 
+tabletext.NSCLC<-cbind(c(c(NA,'META-NSCLC','Age','Gender','    Female','    Male','Tumour Stage','    I','    II','    III','    IV','    Missing cases','B.cell','BCR','B.cell * BCR')),
+                       c("No. of Patients (%)",NA,np.NSCLC),
                        c("HR",NA,format((summary(model.NSCLC)$coeff[,2]),digits=2)[1],NA,'Ref',format((summary(model.NSCLC)$coeff[,2])[2],digits=3),NA,'Ref',format((summary(model.NSCLC)$coeff[,2])[c(3:5)],digits=3),NA,format((summary(model.NSCLC)$coeff[,2])[c(6:8)],digits=3)),
                        c('95% CI',NA,paste0('[',l.NSCLC[3],' - ',u.NSCLC[3],']',sep = ''),
                          NA,'-',paste0('[',l.NSCLC[6],' - ',u.NSCLC[6],']',sep = ''),
@@ -572,8 +545,8 @@ np.CRC <- c(paste(c(length(CRC.FP.data$Age),NA,table(CRC.FP.data$Gender),NA,tabl
                   signif(c(length(CRC.FP.data$Age),NA,table(CRC.FP.data$Gender),NA,table(CRC.FP.data$Pstage,useNA='always'),length(CRC.FP.data$B.lineage),length(CRC.FP.data$BCR),length(CRC.FP.data$BCR))/nrow(CRC.FP.data)*100,digits=1),")",sep=""))
 np.CRC[np.CRC=='NA (NA)'] <- NA
 
-tabletext.CRC<-cbind(c(c(NA,'META-CRC','Age','Gender','    Female','    Male','Tumour Stage','    I','    II','    III','    IV','    V','    Missing cases','B cells','BCR','B cells * BCR')),
-                     c("No. of Patients (%)",NA,np.CRC), 
+tabletext.CRC<-cbind(c(c(NA,'META-CRC','Age','Gender','    Female','    Male','Tumour Stage','    I','    II','    III','    IV','    V','    Missing cases','B.cell','BCR','B.cell * BCR')),
+                     c("No. of Patients (%)",NA,np.CRC),
                      c("HR",NA,format((summary(model.CRC)$coeff[,2]),digits=3)[1],NA,'Ref',format((summary(model.CRC)$coeff[,2])[2],digits=3),NA,'Ref',format((summary(model.CRC)$coeff[,2])[c(3:6)],digits=3),NA,format((summary(model.CRC)$coeff[,2])[c(7:9)],digits=3)),
                      c('95% CI',NA,paste0('[',l.CRC[3],' - ',u.CRC[3],']',sep = ''),
                        NA,'-',paste0('[',l.CRC[6],' - ',u.CRC[6],']',sep = ''),
@@ -602,8 +575,8 @@ np.SKCM <- c(paste(c(length(SKCM.FP.data$B.lineage),length(SKCM.FP.data$BCR),len
                    signif(c(length(SKCM.FP.data$B.lineage),length(SKCM.FP.data$BCR),length(SKCM.FP.data$BCR))/nrow(SKCM.FP.data)*100,digits=1),")",sep=""))
 np.SKCM[np.SKCM=='NA (NA)'] <- NA
 
-tabletext.SKCM<-cbind(c(c(NA,'META-SKCM','B cells','BCR','B cells * BCR')),
-                      c("No. of Patients (%)",NA,np.SKCM), 
+tabletext.SKCM<-cbind(c(c(NA,'META-SKCM','B.cell','BCR','B.cell * BCR')),
+                      c("No. of Patients (%)",NA,np.SKCM),
                       c("HR",NA,format((summary(model.SKCM)$coeff[,2])[1],digits=3),format((summary(model.SKCM)$coeff[,2])[c(2:3)],digits=3)),
                       c('95% CI',NA,paste0('[',l.SKCM[1],' - ',u.SKCM[1],']',sep = ''),
                         paste0('[',l.SKCM[c(2:3)],' - ',u.SKCM[c(2:3)],']',sep = '')),
@@ -629,8 +602,9 @@ tabletext.FP.SS[-1,5] <- format(signif(as.numeric(tabletext.FP.SS[-1,5]),digits=
 tabletext.FP.SS[,5][tabletext.FP.SS[,5]=="    NA"] <- NA
 tabletext.FP.SS[,2] <- c("No. of Patients (%)","1247 (100)",rep(NA,3),"1247 (100)",rep(NA,3),"325 (100)",rep(NA,3))
 
+#########
 
-### Figure 3C - forest plot
+### Figure 3G - forest plot
 
 forestplot::forestplot(tabletext.FP.SS,mean.FP.SS,as.numeric(lower.FP.SS),as.numeric(upper.FP.SS),zero=1,
                        title="Hazard Ratio",lwd.ci=3, ci.vertices=TRUE, ci.vertices.height = 0.05,
@@ -639,7 +613,7 @@ forestplot::forestplot(tabletext.FP.SS,mean.FP.SS,as.numeric(lower.FP.SS),as.num
                                          "7" = gpar(lwd=1, columns=1, col = "black"),
                                          "11" = gpar(lwd=1, columns=1, col = "black"),
                                          "14" = gpar(lwd=1, columns=1:6, col = "black")),lwd.zero=5,
-                       
+
                        clip=c(0,5),xticks=seq(from = 0.5,to = 1.5,by=0.2),graphwidth=unit(24,"cm"),
                        is.summary=c(rep(TRUE,2),rep(FALSE,3),TRUE,rep(FALSE,3),TRUE,rep(FALSE,6)),boxsize = .3,
                        colgap=unit(25,"mm"),lineheight = 'auto',align = c("l", "c", "c","c","c","c"),
@@ -654,7 +628,8 @@ grid.text('Note: Models were adjusted for clinical variables (Age, Gender, Patho
 
 
 
-# Figure 4
+# generating the plots for Figure 4.
+#########
 
 
 MELA2.info$BCR <- base::rowMeans(t(MELA2.exprs[BCR.genes$ENTREZID,]))
@@ -676,8 +651,8 @@ tmp.bp.2group <- data.frame(table(tmp.water.CTLA4$CTLA4.2group));tmp.bp.2group$t
 ##  Testing association of BCR with worse ICB response
 tmp.water.CTLA4$id2 <- as.factor(c(rep('btm',20),rep('top',20)))
 
-tmp.bplot.CTLA4.2group <- ggplot(tmp.bp.2group, aes(fill=Var1, y=Freq, x=total,label=Freq)) + 
-  geom_bar(position="stack", stat="identity") + 
+tmp.bplot.CTLA4.2group <- ggplot(tmp.bp.2group, aes(fill=Var1, y=Freq, x=total,label=Freq)) +
+  geom_bar(position="stack", stat="identity") +
   scale_fill_manual(labels= c('Responders','Progressors'),
                     values = c("springgreen4","firebrick3"))+
   geom_text(size = 6, position = position_stack(vjust = 0.5))+
@@ -693,7 +668,7 @@ tmp.bplot.CTLA4.2group <- ggplot(tmp.bp.2group, aes(fill=Var1, y=Freq, x=total,l
         axis.title.y = element_text(size=14, face="bold"))
 
 
-CTLA4.wp.2 <- ggplot(tmp.water.CTLA4, aes(x=id,y=na.omit(BCR.rescaled), fill = CTLA4.2group)) + 
+CTLA4.wp.2 <- ggplot(tmp.water.CTLA4, aes(x=id,y=na.omit(BCR.rescaled), fill = CTLA4.2group)) +
   geom_bar(stat='identity')+
   labs(x = "Patients", y = "BCR score",fill='Anti-CTLA4 response')+
   geom_segment(aes(x= 10,xend=10,y=0.7,yend=0.7))+
@@ -714,7 +689,7 @@ CTLA4.boxplot.2 <- ggboxplot(tmp.water.CTLA4,x='CTLA4.2group',y='BCR.rescaled',
                              fill='CTLA4.2group',error.plot = 'errorbar',
                              size = 0.2,
                              palette = c("springgreen4","firebrick3"),
-                             add = "jitter", 
+                             add = "jitter",
                              ggtheme = theme_few())+
   stat_compare_means(method = 't.test',tip.length = 0.01,label.x = 2.1,label='p.format',size=5,label.y=2.2)+
   scale_x_discrete(labels=c('Responders','Progressors')) +
@@ -752,10 +727,10 @@ MELA2.info$PDL1 <- c(t(MELA2.exprs[which(rownames(MELA2.exprs) %in% PDL1.sig$ENT
 MELA2.info$CRMA <- base::rowMeans(t(MELA2.exprs[which(rownames(MELA2.exprs) %in% CRMA.sig$ENTREZID),]))
 MELA2.info$IPS <- base::rowMeans(t(MELA2.exprs[which(rownames(MELA2.exprs) %in% IPS.sig$ENTREZID),]))
 MELA2.info$MUT <- MELA2.info$nonsynonymous
-MELA2.info$T.cells <- as.numeric(MCPcounter::MCPcounter.estimate(MELA2.exprs,featuresType = 'ENTREZ_ID')['T cells',])
+MELA2.info$T.cell <- as.numeric(MCPcounter::MCPcounter.estimate(MELA2.exprs,featuresType = 'ENTREZ_ID')['T cells',])
 
 
-CTLA4.table <- MELA2.info[c('response','CTLA4.2group','BCR.bin','OS','OS.year','BCR','T.cells','IFGN','CD8','PDL1','CRMA','IPS','MUT')]
+CTLA4.table <- MELA2.info[c('response','CTLA4.2group','BCR.bin','OS','OS.year','BCR','T.cell','IFGN','CD8','PDL1','CRMA','IPS','MUT')]
 CTLA4.table$BCR.rescaled  <- scale(CTLA4.table$BCR, center = T,scale=T)
 CTLA4.table <- CTLA4.table[order(CTLA4.table$BCR.rescaled),]
 CTLA4.table$id <- as.factor(1:nrow(CTLA4.table))
@@ -785,11 +760,11 @@ MELA2.CTLA4.BCR.performance$AUC <- as.numeric(MELA2.CTLA4.BCR.performance$AUC)
 MELA2.CTLA4.BCR.performance$AUC.l <- as.numeric(MELA2.CTLA4.BCR.performance$AUC.l)
 MELA2.CTLA4.BCR.performance$AUC.u <- as.numeric(MELA2.CTLA4.BCR.performance$AUC.u)
 
-## ST5 
+## ST5
 
 # Signatures patients Responders Progressors   w.p    AUC     AUC.l     AUC.u
 # BCR         BCR      All         18          22 0.024 0.7323 0.5737328 0.8909137
-# T.cells T.cells      All         18          22 0.013 0.7298 0.5699435 0.8896525
+# T.cell T.cell      All         18          22 0.013 0.7298 0.5699435 0.8896525
 # IFGN       IFGN      All         18          22 0.032 0.6995 0.5314384 0.8675515
 # CD8         CD8      All         18          22 0.045 0.6869 0.5203285 0.8534089
 # PDL1       PDL1      All         18          22  0.18 0.6263 0.4481426 0.8043826
@@ -804,10 +779,11 @@ CTLA.AUC.bar <- ggbarplot(MELA2.CTLA4.BCR.performance,x='Signatures',y='AUC',fil
   geom_errorbar(aes(ymin=MELA2.CTLA4.BCR.performance$AUC.l, ymax=MELA2.CTLA4.BCR.performance$AUC.u), width=.15,alpha=0.25,color='black',
                 position=position_dodge()) +
   labs(fill='')+
-  geom_hline(yintercept=0.5, linetype="dashed", 
+  geom_hline(yintercept=0.5, linetype="dashed",
              color = "black", size=0.5)+theme(legend.position = "none")
 
-##################### Anti-PD1 analyses 
+##################### Anti-PD1 analyses
+
 MELA3.info$BCR <- base::rowMeans(t(MELA3.exprs[BCR.genes$ENTREZID,]))
 MELA3.info$BCR.bin <- relevel(as.factor(ifelse(ntile(MELA3.info$BCR,n = 2)=='1','Low','High')),ref = 'Low')
 
@@ -826,8 +802,8 @@ tmp.bp.2group <- data.frame(table(tmp.water.2group$PD1.2group));tmp.bp.2group$to
 tmp.water.2group$BCR.bin <- relevel(as.factor(ifelse(ntile(tmp.water.2group$BCR.rescaled,n = 2)=='1','Low','High')),ref = 'Low')
 
 
-tmp.bplot.PD1.2group <- ggplot(tmp.bp.2group, aes(fill=Var1, y=Freq, x=total,label=Freq)) + 
-  geom_bar(position="stack", stat="identity") + 
+tmp.bplot.PD1.2group <- ggplot(tmp.bp.2group, aes(fill=Var1, y=Freq, x=total,label=Freq)) +
+  geom_bar(position="stack", stat="identity") +
   scale_fill_manual(labels= c('Responders','Progressors'),
                     values = c("springgreen4","firebrick3"))+
   geom_text(size = 6, position = position_stack(vjust = 0.5))+
@@ -843,7 +819,7 @@ tmp.bplot.PD1.2group <- ggplot(tmp.bp.2group, aes(fill=Var1, y=Freq, x=total,lab
         axis.title.y = element_text(size=14, face="bold"))
 
 
-PD1.wp.2 <- ggplot(tmp.water.2group, aes(x=id,y=(BCR.rescaled), fill = PD1.2group)) + 
+PD1.wp.2 <- ggplot(tmp.water.2group, aes(x=id,y=(BCR.rescaled), fill = PD1.2group)) +
   geom_bar(stat='identity')+
   labs(x = "Patients", y = "BCR score",fill='Anti-PD1 response')+
   geom_segment(aes(x= 103/4,xend=103/4,y=2,yend=2))+
@@ -865,7 +841,7 @@ PD1.boxplot.2 <- ggboxplot(tmp.water.2group,x='PD1.2group',y='BCR.rescaled',
                            fill='PD1.2group',error.plot = 'errorbar',
                            size = 0.2,
                            palette = c("springgreen4","firebrick3"),
-                           add = "jitter", 
+                           add = "jitter",
                            ggtheme = theme_few())+
   stat_compare_means(method = 't.test',tip.length = 0.01,label.x = 2.1,label='p.format',size=5,label.y = 2.5)+
   scale_x_discrete(labels=c('Responders','Progressors')) +
@@ -886,9 +862,9 @@ MELA3.info$PDL1 <- c(t(MELA3.exprs[which(rownames(MELA3.exprs) %in% PDL1.sig$ENT
 MELA3.info$CRMA <- base::rowMeans(t(MELA3.exprs[which(rownames(MELA3.exprs) %in% CRMA.sig$ENTREZID),]))
 MELA3.info$IPS <- base::rowMeans(t(MELA3.exprs[which(rownames(MELA3.exprs) %in% IPS.sig$ENTREZID),]))
 MELA3.info$MUT <- MELA3.info$nonsyn_muts
-MELA3.info$T.cells <- as.numeric(MCPcounter::MCPcounter.estimate(MELA3.exprs,featuresType = 'ENTREZ_ID')['T cells',])
+MELA3.info$T.cell <- as.numeric(MCPcounter::MCPcounter.estimate(MELA3.exprs,featuresType = 'ENTREZ_ID')['T cells',])
 
-tmp <- MELA3.info[c('PD1_response','PD1.2group','priorCTLA4','BCR.bin','OS','OS.year','BCR','T.cells','IFGN','CD8','PDL1','CRMA','IPS','MUT')]
+tmp <- MELA3.info[c('PD1_response','PD1.2group','priorCTLA4','BCR.bin','OS','OS.year','BCR','T.cell','IFGN','CD8','PDL1','CRMA','IPS','MUT')]
 tmp$BCR.rescaled  <- scale(tmp$BCR, center = T,scale=T)
 tmp <- tmp[order(tmp$BCR.rescaled),]
 tmp$id <- as.factor(1:nrow(tmp))
@@ -902,7 +878,7 @@ MELA3.PD1.performance.all <- data.frame(foreach(i=c(colnames(PD1.table)[8:14]),.
   auc.df <-  round(as.numeric(pROC::roc(PD1.table$PD1.2group,PD1.table[,i])$auc),digits=4)
   auc.df.l <- as.numeric(pROC::ci.auc(PD1.table$PD1.2group,PD1.table[,i])[1])
   auc.df.u <- as.numeric(pROC::ci.auc(PD1.table$PD1.2group,PD1.table[,i])[3])
-  
+
   c(patients='All',Responders='47',Progressors='56',w.p=w.df,auc=auc.df,auc.l=auc.df.l,auc.u=auc.df.u)},row.names = colnames(PD1.table)[8:14])
 
 MELA3.PD1.performance.ipi.naive <- data.frame(foreach(i=c(colnames(PD1.table)[8:14]),.combine='rbind') %do% {
@@ -947,7 +923,7 @@ MELA3.PD1.BCR.performance.ipi.treated <- rbind(MELA3.PD1.onlyBCR.performance.ipi
 
 PD1.BCR <- cbind(MELA3.PD1.BCR.performance.all[,-c(6,7)],MELA3.PD1.BCR.performance.ipi.naive,MELA3.PD1.BCR.performance.ipi.treated)
 PD1.BCR <- PD1.BCR %>% add_column(Signatures=colnames(PD1.table)[7:14],.before='patients')
-bar.comparisons <- list(c('BCR','T.cells'),c('BCR','IFGN'),c('BCR','CD8'),c('BCR','PDL1'),c('BCR','CRMA'),c('BCR','IPS'),c('BCR','MUT'))
+bar.comparisons <- list(c('BCR','T.cell'),c('BCR','IFGN'),c('BCR','CD8'),c('BCR','PDL1'),c('BCR','CRMA'),c('BCR','IPS'),c('BCR','MUT'))
 
 PD1.BCR$auc <- signif(as.numeric(PD1.BCR$auc),digits = 3)
 PD1.AUC.bar <- ggbarplot(PD1.BCR,x='Signatures',y='auc',fill='Signatures',
@@ -957,26 +933,23 @@ PD1.AUC.bar <- ggbarplot(PD1.BCR,x='Signatures',y='auc',fill='Signatures',
   geom_errorbar(aes(ymin=as.numeric(MELA3.PD1.BCR.performance.all$auc.l), ymax=as.numeric(MELA3.PD1.BCR.performance.all$auc.u)), width=.15,alpha=0.25,color='black',
                 position=position_dodge())+
   labs(fill='')+
-  geom_hline(yintercept=0.5, linetype="dashed", 
+  geom_hline(yintercept=0.5, linetype="dashed",
              color = "black", size=0.5)+theme(legend.position = "none")
 
 
 
 
-
-# Main figure 4 
-
+#########
+# Main figure 4
+#########
 # Figure 4 A-F
 
 
-ggpubr::ggarrange(tmp.bplot.PD1.2group,PD1.wp.2,PD1.boxplot.2,PD1.AUC.bar,
+Figure4A_F <- ggpubr::ggarrange(tmp.bplot.PD1.2group,PD1.wp.2,PD1.boxplot.2,PD1.AUC.bar,
                   tmp.bplot.CTLA4.2group,CTLA4.wp.2,CTLA4.boxplot.2,CTLA.AUC.bar,common.legend = T,
                   ncol = 4, nrow = 2,  align = "h",widths=c(0.3,1.5,1.5,1.5),heights = c(1,1,1,1))
 
-
-
-# Figure 4 KMs G-H
-
+# Figure 4 G-H
 par(mfrow=c(1,2),omi=c(0, 0, 0, 0),tcl=-0.5,mai=c(1,1,0.5,0.5))
 
 survplot(Surv(tmp.water.2group$OS.year, tmp.water.2group$OS)~BCR.bin,show.nrisk = T,data=tmp.water.2group,stitle='',subset = tmp.water.2group$OS.year <= 2.6,
