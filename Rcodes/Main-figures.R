@@ -1,12 +1,7 @@
 ## this code is to generate main figures of the manuscript
 
 ## load the RData all required datasets and libraries
-source(file="~/Documents/GitHub/BCR/Rcodes/functions.R")
-
-### RData files are accessible here
-# https://www.dropbox.com/sh/ads00s0zqh9iwqb/AABq7S_T0dNgxfaSYEvHvyIXa?dl=0
-
-
+source(file="~/Rcodes/functions.R")
 
 ## function to generate interaction values of all genes in the dataset
 # the results are saved as a list in int.list
