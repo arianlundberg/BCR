@@ -1,7 +1,7 @@
 # BCR
 
 ## "B cell-related gene signature and cancer immunotherapy response" 
-### link to manuscript  Lundberg et al.
+### https://doi.org/10.1038/s41416-021-01674-6  Lundberg et al.
 
 ### Written by ARIAN LUNDBERG 
 
