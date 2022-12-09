@@ -4,39 +4,23 @@
 ### https://doi.org/10.1038/s41416-021-01674-6  Lundberg et al.
 
 ### Written by ARIAN LUNDBERG 
-
-All R codes (R statistical software version 4.1.0) to reproduce main figures of 
-"B cell-related gene signature and cancer immunotherapy response" 
-Lundberg et al. are available in "~/RCodes/"
-
-### functions.R
-Contains required/created functions
-
-### Main-figures.R
-To generate all main figures of the manuscript please run this R code
+All R codes (R statistical software version 4.1.0) to reproduce the main figures of "B cell-related gene signature and cancer immunotherapy response" by Lundberg et al. are available in the "~/RCodes/" directory. 
 
 
-**The following RData files were used in the codes. which are uploaded on Dropbox due to limitation of file sizes on Github **
+The functions.R file contains the required and created functions, and the Main-figures.R file can be run to generate all of the main figures of the manuscript. 
+
+**Please note that the RData files used in the codes are available on Dropbox due to the limitation of file sizes on Github**
 
 https://www.dropbox.com/sh/p22hjp71p01z20y/AAAxezTIZZqPrMH4IhHU0UXKa?dl=0
 
-### META-BRCA.RData 
-All data derived from the public cohorts of META-BRCA are saved in this file. 
+All data derived from the public cohorts of META-BRCA, META-CRC, META-NSCLC, and META-SKCM are saved in the corresponding RData files, respectively. 
 
-### META-CRC.RData 
-All data derived from the public cohorts of META-CRC are saved in this file. 
+The sig.gene.RData file contains all significant genes from interaction analyses and genes included in the B cell-related gene signature. 
 
-### META-NSCLC.RData 
-All data derived from the public cohorts of META-NSCLC are saved in this file. 
-
-### META-SKCM.RData 
-All data derived from the public cohorts of META-SKCM are saved in this file. 
-
-### sig.gene.RData
-All significant genes from interaction analyses and genes included in B cell-related gene signature are stored in this file.
+If you have any further questions, please contact Arian Lundberg at **arian.lundberg@ucsf.edu**. 
 
 
-Please contact Arian Lundberg : **arian.lundberg@ucsf.edu** if you have any further questions. 
 
-Thanks,
+Thank you, 
 Arian Lundberg
+
